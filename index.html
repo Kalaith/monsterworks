@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Factory Builder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="game-header">
+            <h1>🏭 Emoji Factory Builder</h1>
+            <div class="resources-display" id="resourcesDisplay">
+                <div class="resource-item">
+                    <span class="resource-icon">🧱</span>
+                    <span class="resource-amount" id="stone">20</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">🪵</span>
+                    <span class="resource-amount" id="wood">15</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">🍎</span>
+                    <span class="resource-amount" id="food">10</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">⚙️</span>
+                    <span class="resource-amount" id="metal">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">✨</span>
+                    <span class="resource-amount" id="charm">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">📚</span>
+                    <span class="resource-amount" id="knowledge">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">🔧</span>
+                    <span class="resource-amount" id="upgrade">0</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="game-controls">
+                <div class="control-section">
+                    <h3>🏗️ Buildings</h3>
+                    <div class="buildings-grid" id="buildingsPanel">
+                        <!-- Buildings will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>🐾 Creatures</h3>
+                    <div class="creatures-grid" id="creaturesPanel">
+                        <!-- Creatures will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>⚡ Game Speed</h3>
+                    <div class="speed-controls">
+                        <button class="btn btn--sm" id="pauseBtn">⏸️</button>
+                        <button class="btn btn--sm" id="normalSpeedBtn">▶️</button>
+                        <button class="btn btn--sm" id="fastSpeedBtn">⏩</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-canvas-container">
+                <canvas id="gameCanvas" width="1000" height="700"></canvas>
+                <div class="canvas-overlay">
+                    <div class="info-panel hidden" id="infoPanel">
+                        <div class="info-content" id="infoPanelContent">
+                            <!-- Info content will be populated by JavaScript -->
+                        </div>
+                        <button class="btn btn--sm" id="closeInfoBtn">✕</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="game-instructions">
+            <p><strong>Instructions:</strong> Right-click to place buildings • Left-click to select • Use resources to build and recruit creatures!</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
