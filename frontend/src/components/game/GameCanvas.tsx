@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useGameStore } from '../../stores/gameStore';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import { getBuildingData, getCreatureData, GAME_DATA } from '../../data/gameData';
-import type { Position } from '../../types/game';
+import type { Position, BuildingState, CreatureState, BuildingType, CreatureType } from '../../types/game';
 
 interface GameCanvasProps {
   width?: number;
@@ -150,7 +150,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   };
 
   // Building drawing function
-  const drawBuilding = (ctx: CanvasRenderingContext2D, building: any) => {
+  const drawBuilding = (ctx: CanvasRenderingContext2D, building: BuildingState) => {
     const buildingData = getBuildingData(building.type);
     
     // Draw building emoji
@@ -185,7 +185,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   };
 
   // Creature drawing function
-  const drawCreature = (ctx: CanvasRenderingContext2D, creature: any) => {
+  const drawCreature = (ctx: CanvasRenderingContext2D, creature: CreatureState) => {
     const creatureData = getCreatureData(creature.type);
     
     // Draw creature emoji
@@ -300,12 +300,12 @@ const InfoPanel: React.FC = () => {
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-semibold text-lg">
           {type === 'building' 
-            ? getBuildingData(data.type as any).emoji 
-            : getCreatureData(data.type as any).emoji}
+            ? getBuildingData(data.type as BuildingType).emoji 
+            : getCreatureData(data.type as CreatureType).emoji}
           {' '}
           {type === 'building' 
-            ? getBuildingData(data.type as any).name 
-            : getCreatureData(data.type as any).name}
+            ? getBuildingData(data.type as BuildingType).name 
+            : getCreatureData(data.type as CreatureType).name}
         </h4>
         <button
           onClick={() => actions.hideInfo()}
@@ -317,9 +317,9 @@ const InfoPanel: React.FC = () => {
       
       <div className="space-y-1 text-sm">
         {type === 'building' ? (
-          <BuildingInfo building={data} />
+          <BuildingInfo building={data as BuildingState} />
         ) : (
-          <CreatureInfo creature={data} />
+          <CreatureInfo creature={data as CreatureState} />
         )}
         <div className="text-xs text-gray-500">
           Position: ({Math.round(data.x)}, {Math.round(data.y)})
@@ -330,7 +330,7 @@ const InfoPanel: React.FC = () => {
 };
 
 // Building Info Component
-const BuildingInfo: React.FC<{ building: any }> = ({ building }) => {
+const BuildingInfo: React.FC<{ building: BuildingState }> = ({ building }) => {
   const buildingData = getBuildingData(building.type);
   
   return (
@@ -356,7 +356,7 @@ const BuildingInfo: React.FC<{ building: any }> = ({ building }) => {
 };
 
 // Creature Info Component
-const CreatureInfo: React.FC<{ creature: any }> = ({ creature }) => {
+const CreatureInfo: React.FC<{ creature: CreatureState }> = ({ creature }) => {
   const creatureData = getCreatureData(creature.type);
   
   return (

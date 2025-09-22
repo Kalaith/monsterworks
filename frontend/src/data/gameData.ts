@@ -14,7 +14,8 @@ import type {
   ResourceCost,
   GameConfig,
   InventoryCategory,
-  InventoryState
+  InventoryState,
+  CreatureSpecialty
 } from '../types/game';
 
 // ===== CREATURE DATA =====
@@ -527,7 +528,7 @@ export function getResourceData(type: ResourceType): ResourceData {
  * Check if a creature type has a specific specialty
  */
 export function hasSpecialty(creatureType: CreatureType, specialty: string): boolean {
-  return CREATURES[creatureType].specialties.includes(specialty as any);
+  return CREATURES[creatureType].specialties.includes(specialty as CreatureSpecialty);
 }
 
 /**
@@ -554,8 +555,8 @@ export function getProcessingBuildings(): BuildingType[] {
 export function getCarriersForResource(resourceType: ResourceType): CreatureType[] {
   return Object.entries(CREATURES)
     .filter(([_, data]) => 
-      data.specialties.includes('any' as any) || 
-      data.specialties.includes(resourceType as any)
+      data.specialties.includes('any') || 
+      data.specialties.includes(resourceType as CreatureSpecialty)
     )
     .map(([type, _]) => type as CreatureType);
 }

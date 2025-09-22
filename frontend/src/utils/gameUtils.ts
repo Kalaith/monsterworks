@@ -9,7 +9,9 @@ import type {
   BuildingType, 
   CreatureType, 
   Position, 
-  ResourceType 
+  ResourceType,
+  GameActions,
+  GameState
 } from '../types/game';
 import { getBuildingData, getCreatureData, GAME_DATA, GAME_CONFIG } from '../data/gameData';
 
@@ -81,7 +83,7 @@ export class Building {
     }
   }
 
-  update(deltaTime: number, gameActions: any): void {
+  update(deltaTime: number, gameActions: GameActions): void {
     const buildingData = getBuildingData(this.type);
     this.lastProduction += deltaTime;
 
@@ -210,7 +212,7 @@ export class Creature {
     this.workCooldown = 0;
   }
 
-  update(deltaTime: number, buildings: Building[], gameActions: any): void {
+  update(deltaTime: number, buildings: Building[], gameActions: GameActions): void {
     const creatureData = getCreatureData(this.type);
     
     this.workCooldown = Math.max(0, this.workCooldown - deltaTime);
@@ -281,7 +283,7 @@ export class Creature {
     return Math.sqrt(dx * dx + dy * dy) < 8;
   }
 
-  private findWork(buildings: Building[], gameActions: any): void {
+  private findWork(buildings: Building[], gameActions: GameActions): void {
     if (this.carriedAmount === 0) {
       // Find resources to pick up
       const source = this.findResourceSource(buildings, gameActions);
@@ -301,7 +303,7 @@ export class Creature {
     }
   }
 
-  private findResourceSource(buildings: Building[], gameActions: any): Building | null {
+  private findResourceSource(buildings: Building[], gameActions: GameActions): Building | null {
     const creatureData = getCreatureData(this.type);
     
     // Look for production buildings with resources to pickup
@@ -423,7 +425,7 @@ export class Creature {
     this.targetY = building.y + (Math.random() - 0.5) * 30;
   }
 
-  private handleWork(building: Building, gameActions: any): void {
+  private handleWork(building: Building, gameActions: GameActions): void {
     if (this.task === 'pickup') {
       this.handlePickup(building, gameActions);
     } else if (this.task === 'deliver') {
@@ -435,7 +437,7 @@ export class Creature {
     }
   }
 
-  private handlePickup(building: Building, gameActions: any): void {
+  private handlePickup(building: Building, gameActions: GameActions): void {
     const buildingData = getBuildingData(building.type);
     let pickedUp = false;
 
@@ -477,7 +479,7 @@ export class Creature {
     }
   }
 
-  private handleDelivery(building: Building, gameActions: any): void {
+  private handleDelivery(building: Building, gameActions: GameActions): void {
     const buildingData = getBuildingData(building.type);
     
     if (buildingData.storage && this.carriedAmount > 0 && this.carriedResource) {
