@@ -10,7 +10,7 @@ interface GameCanvasProps {
   className?: string;
 }
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ 
+export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({ 
   width = 1000, 
   height = 700, 
   className = '' 
@@ -285,7 +285,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       </div>
     </div>
   );
-};
+});
 
 // Info Panel Component
 const InfoPanel: React.FC = () => {

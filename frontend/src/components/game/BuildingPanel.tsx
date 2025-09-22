@@ -17,7 +17,7 @@ interface BuildingItemProps {
   onSelect: (type: BuildingType) => void;
 }
 
-function BuildingItem({ type, isSelected, canAfford, onSelect }: BuildingItemProps) {
+const BuildingItem = React.memo<BuildingItemProps>(({ type, isSelected, canAfford, onSelect }) => {
   const buildingData = BUILDINGS[type];
   
   const costText = Object.entries(buildingData.cost)
@@ -67,13 +67,13 @@ function BuildingItem({ type, isSelected, canAfford, onSelect }: BuildingItemPro
       </div>
     </motion.div>
   );
-}
+});
 
 interface BuildingPanelProps {
   className?: string;
 }
 
-export function BuildingPanel({ className }: BuildingPanelProps) {
+export const BuildingPanel = React.memo<BuildingPanelProps>(({ className }) => {
   const selectedBuildingType = useGameStore((state) => state.selectedBuildingType);
   const { selectBuildingType, canAfford } = useGameActions();
 
@@ -115,4 +115,4 @@ export function BuildingPanel({ className }: BuildingPanelProps) {
       </div>
     </Card>
   );
-}
+});
