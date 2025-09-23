@@ -1,82 +1,43 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { useGameStore } from '../../stores/gameStore';
-import { useGameLoop } from '../../hooks/useGameLoop';
-import { getBuildingData, getCreatureData, GAME_DATA } from '../../data/gameData';
+import React, { useRef, useEffect, useCallback } from 'react';
 import type { Position, BuildingState, CreatureState, BuildingType, CreatureType } from '../../types/game';
+import { getBuildingData, getCreatureData, GAME_DATA } from '../../data/gameData';
 
 interface GameCanvasProps {
   width?: number;
   height?: number;
   className?: string;
+  buildings: BuildingState[];
+  creatures: CreatureState[];
+  selectedObject?: { type: 'building' | 'creature'; id: string } | null;
+  onCanvasClick?: (position: Position) => void;
+  onCanvasRightClick?: (position: Position) => void;
 }
 
 export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({ 
   width = 1000, 
   height = 700, 
-  className = '' 
+  className = '',
+  buildings,
+  creatures,
+  selectedObject,
+  onCanvasClick,
+  onCanvasRightClick
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width, height });
-  
-  const { 
-    buildings, 
-    creatures, 
-    selectedObject, 
-    selectedBuildingType, 
-    selectedCreatureType,
-    actions 
-  } = useGameStore();
-
-  // Start the game loop
-  useGameLoop();
 
   // Handle canvas clicks
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    // Check if clicking on a building
-    const clickedBuilding = buildings.find(building => {
-      const distance = Math.sqrt(
-        Math.pow(x - building.x, 2) + Math.pow(y - building.y, 2)
-      );
-      return distance <= 20;
-    });
-
-    if (clickedBuilding) {
-      actions.selectObject('building', clickedBuilding.id);
-      actions.showInfo('building', clickedBuilding.id);
+    console.log('🎯 GameCanvas handleCanvasClick triggered');
+    if (!onCanvasClick) {
+      console.log('⚠️ No onCanvasClick handler provided');
       return;
     }
-
-    // Check if clicking on a creature
-    const clickedCreature = creatures.find(creature => {
-      const distance = Math.sqrt(
-        Math.pow(x - creature.x, 2) + Math.pow(y - creature.y, 2)
-      );
-      return distance <= 12;
-    });
-
-    if (clickedCreature) {
-      actions.selectObject('creature', clickedCreature.id);
-      actions.showInfo('creature', clickedCreature.id);
+    
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.log('⚠️ No canvas ref');
       return;
     }
-
-    // Clear selection if clicking empty space
-    actions.clearSelection();
-    actions.hideInfo();
-  }, [buildings, creatures, actions]);
-
-  // Handle right-click for placing buildings/creatures
-  const handleCanvasRightClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    event.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
     const position: Position = {
@@ -84,14 +45,36 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
       y: event.clientY - rect.top
     };
 
-    if (selectedBuildingType) {
-      actions.placeBuilding(selectedBuildingType, position);
-    } else if (selectedCreatureType) {
-      actions.spawnCreature(selectedCreatureType, position);
-    }
-  }, [selectedBuildingType, selectedCreatureType, actions]);
+    console.log('🎯 Calling onCanvasClick with position:', position);
+    onCanvasClick(position);
+  }, [onCanvasClick]);
 
-  // Render function
+  // Handle right-click for placing buildings/creatures
+  const handleCanvasRightClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    console.log('🎯 GameCanvas handleCanvasRightClick triggered');
+    if (!onCanvasRightClick) {
+      console.log('⚠️ No onCanvasRightClick handler provided');
+      return;
+    }
+    
+    event.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.log('⚠️ No canvas ref');
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const position: Position = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
+    };
+
+    console.log('🎯 Calling onCanvasRightClick with position:', position);
+    onCanvasRightClick(position);
+  }, [onCanvasRightClick]);
+
+  // Pure render function - no state dependencies
   const render = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -159,18 +142,36 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
     ctx.fillStyle = '#000';
     ctx.fillText(buildingData.emoji, building.x, building.y + 10);
 
-    // Show production indicator
+    // Show production indicator and current production level
     if (buildingData.produces) {
       const resourceData = GAME_DATA.resources[buildingData.produces];
       ctx.font = '12px Arial';
       ctx.fillText(resourceData.emoji, building.x, building.y - 15);
+      
+      // Show production amount
+      ctx.font = '10px Arial';
+      ctx.fillStyle = '#0066cc';
+      const productionValue = Math.floor(building.production * 10);
+      const maxProduction = 10; // Assuming max production is 1.0, so 10/10 when scaled
+      ctx.fillText(`${Math.min(productionValue, maxProduction)}/${maxProduction}`, building.x, building.y - 25);
     }
 
-    // Show storage for warehouses
-    if (buildingData.storage && building.storage) {
+    // Show storage levels with current/max
+    if (building.maxStorage && building.maxStorage > 0) {
+      const totalStored = Object.values(building.storage || {}).reduce((sum, amount) => 
+        sum + (typeof amount === 'number' ? amount : 0), 0
+      );
+      
       ctx.font = '10px Arial';
       ctx.fillStyle = '#666';
-      let yOffset = 25;
+      ctx.fillText(`${Math.floor(totalStored)}/${building.maxStorage}`, building.x, building.y + 30);
+    }
+
+    // Show individual stored resources
+    if (buildingData.storage && building.storage) {
+      ctx.font = '10px Arial';
+      ctx.fillStyle = '#333';
+      let yOffset = 40;
       Object.entries(building.storage).forEach(([resource, amount]) => {
         if (typeof amount === 'number' && amount > 0) {
           const resourceData = GAME_DATA.resources[resource as keyof typeof GAME_DATA.resources];
@@ -180,8 +181,17 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
           }
         }
       });
-      ctx.fillStyle = '#000';
     }
+
+    // Show number of workers
+    const workerCount = building.workers?.length || 0;
+    if (workerCount > 0) {
+      ctx.font = '8px Arial';
+      ctx.fillStyle = '#28a745';
+      ctx.fillText(`👷${workerCount}`, building.x + 20, building.y - 10);
+    }
+
+    ctx.fillStyle = '#000';
   };
 
   // Creature drawing function
@@ -194,17 +204,19 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
     ctx.fillStyle = '#000';
     ctx.fillText(creatureData.emoji, creature.x, creature.y + 6);
 
-    // Show carrying indicator
+    // Show carrying indicator with amount
     if (creature.carriedAmount > 0) {
       ctx.font = '10px Arial';
-      ctx.fillText('📦', creature.x, creature.y - 12);
+      ctx.fillStyle = '#ff8c00';
+      const carriedValue = Math.floor(creature.carriedAmount * 10);
+      const maxCarried = creatureData.capacity * 10;
+      ctx.fillText(`📦${Math.min(carriedValue, maxCarried)}/${maxCarried}`, creature.x, creature.y - 12);
     }
 
     // Show status indicator
     ctx.font = '8px Arial';
     ctx.fillStyle = getStatusColor(creature.status);
     ctx.fillText(creature.status, creature.x, creature.y + 20);
-    ctx.fillStyle = '#000';
 
     // Show energy bar
     const barWidth = 16;
@@ -213,6 +225,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
     ctx.fillRect(creature.x - barWidth/2, creature.y - 18, barWidth, barHeight);
     ctx.fillStyle = '#44ff44';
     ctx.fillRect(creature.x - barWidth/2, creature.y - 18, (creature.energy / 100) * barWidth, barHeight);
+    
     ctx.fillStyle = '#000';
   };
 
@@ -236,38 +249,17 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
     }
   };
 
-  // Handle canvas resize
+  // Re-render when props change
   useEffect(() => {
-    const handleResize = () => {
-      const container = canvasRef.current?.parentElement;
-      if (container) {
-        const { clientWidth } = container;
-        const newWidth = Math.min(clientWidth - 32, width);
-        const newHeight = Math.floor((newWidth / width) * height);
-        setCanvasSize({ width: newWidth, height: newHeight });
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [width, height]);
-
-  // Render on every frame
-  useEffect(() => {
-    const renderLoop = () => {
-      render();
-      requestAnimationFrame(renderLoop);
-    };
-    requestAnimationFrame(renderLoop);
+    render();
   }, [render]);
 
   return (
     <div className="game-canvas-container relative">
       <canvas
         ref={canvasRef}
-        width={canvasSize.width}
-        height={canvasSize.height}
+        width={width}
+        height={height}
         className={`border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 ${className}`}
         onClick={handleCanvasClick}
         onContextMenu={handleCanvasRightClick}
@@ -276,108 +268,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
           height: 'auto'
         }}
       />
-      
-      {/* Info Panel */}
-      <div className="absolute top-4 right-4 max-w-xs">
-        {useGameStore.getState().showInfoPanel && (
-          <InfoPanel />
-        )}
-      </div>
     </div>
   );
 });
-
-// Info Panel Component
-const InfoPanel: React.FC = () => {
-  const { infoPanelContent, actions } = useGameStore();
-  
-  if (!infoPanelContent) return null;
-
-  const { type, data } = infoPanelContent;
-
-  return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-lg">
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="font-semibold text-lg">
-          {type === 'building' 
-            ? getBuildingData(data.type as BuildingType).emoji 
-            : getCreatureData(data.type as CreatureType).emoji}
-          {' '}
-          {type === 'building' 
-            ? getBuildingData(data.type as BuildingType).name 
-            : getCreatureData(data.type as CreatureType).name}
-        </h4>
-        <button
-          onClick={() => actions.hideInfo()}
-          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          ✕
-        </button>
-      </div>
-      
-      <div className="space-y-1 text-sm">
-        {type === 'building' ? (
-          <BuildingInfo building={data as BuildingState} />
-        ) : (
-          <CreatureInfo creature={data as CreatureState} />
-        )}
-        <div className="text-xs text-gray-500">
-          Position: ({Math.round(data.x)}, {Math.round(data.y)})
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Building Info Component
-const BuildingInfo: React.FC<{ building: BuildingState }> = ({ building }) => {
-  const buildingData = getBuildingData(building.type);
-  
-  return (
-    <>
-      {buildingData.produces && (
-        <div>
-          <span className="font-medium">Produces:</span>{' '}
-          {GAME_DATA.resources[buildingData.produces].emoji} {buildingData.produces}
-        </div>
-      )}
-      {buildingData.rate && (
-        <div>
-          <span className="font-medium">Rate:</span> {buildingData.rate}/sec
-        </div>
-      )}
-      {buildingData.storage && (
-        <div>
-          <span className="font-medium">Storage:</span> {buildingData.storage}
-        </div>
-      )}
-    </>
-  );
-};
-
-// Creature Info Component
-const CreatureInfo: React.FC<{ creature: CreatureState }> = ({ creature }) => {
-  const creatureData = getCreatureData(creature.type);
-  
-  return (
-    <>
-      <div>
-        <span className="font-medium">Capacity:</span> {creatureData.capacity}
-      </div>
-      <div>
-        <span className="font-medium">Speed:</span> {creatureData.speed}
-      </div>
-      <div>
-        <span className="font-medium">Status:</span> {creature.status}
-      </div>
-      <div>
-        <span className="font-medium">Energy:</span> {Math.round(creature.energy)}%
-      </div>
-      <div>
-        <span className="font-medium">Specialties:</span> {creatureData.specialties.join(', ')}
-      </div>
-    </>
-  );
-};
 
 export default GameCanvas;

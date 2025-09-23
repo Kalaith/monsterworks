@@ -4,16 +4,27 @@ import { useGameStore } from '../stores/gameStore';
 export const useGameLoop = () => {
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
-  
-  const { gameSpeed, isPaused, actions } = useGameStore();
+  const lastUpdateRef = useRef<number>(0);
+
+  // Get initial values but don't subscribe to changes
+  const initialGameSpeed = useGameStore.getState().gameSpeed;
+  const initialIsPaused = useGameStore.getState().isPaused;
 
   useEffect(() => {
     const gameLoop = (currentTime: number) => {
       const deltaTime = (currentTime - lastTimeRef.current) / 1000;
       lastTimeRef.current = currentTime;
 
-      if (!isPaused) {
-        actions.updateGame(deltaTime * gameSpeed);
+      const currentState = useGameStore.getState();
+      if (!currentState.isPaused) {
+        // Only update store every 200ms (5 times per second) instead of every frame
+        const timeSinceLastUpdate = currentTime - lastUpdateRef.current;
+        if (timeSinceLastUpdate >= 200) { // 200ms = 5 FPS for UI updates
+          // Pass the actual time elapsed since last update, not the frame deltaTime
+          const updateDeltaTime = timeSinceLastUpdate / 1000; // Convert to seconds
+          currentState.actions.updateGame(updateDeltaTime * currentState.gameSpeed);
+          lastUpdateRef.current = currentTime;
+        }
       }
 
       animationFrameRef.current = requestAnimationFrame(gameLoop);
@@ -26,7 +37,7 @@ export const useGameLoop = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [gameSpeed, isPaused, actions]);
+  }, []); // Remove dependencies to prevent restarting the loop
 
   return {
     start: () => {

@@ -10,4 +10,5 @@ export { CreaturePanel } from './CreaturePanel';
 export { EvolutionPanel } from './EvolutionPanel';
 export { SpeedControls } from './SpeedControls';
 export { GameCanvas } from './GameCanvas';
+export { GameCanvasContainer } from './GameCanvasContainer';
 export { DebugPanel } from './DebugPanel';

@@ -201,6 +201,24 @@ export interface Position {
   y: number;
 }
 
+export interface GridPosition {
+  gridX: number;
+  gridY: number;
+}
+
+export interface GridConfig {
+  size: number;
+  showLines: boolean;
+  snapToGrid: boolean;
+  lineColor: string;
+  lineWidth: number;
+  subGrid?: {
+    divisions: number;
+    color: string;
+    width: number;
+  };
+}
+
 export interface CanvasMouseEvent {
   x: number;
   y: number;
@@ -234,6 +252,18 @@ export interface GameConfig {
     width: number;
     height: number;
     gridSize: number;
+  };
+  grid: {
+    size: number;
+    showLines: boolean;
+    snapToGrid: boolean;
+    lineColor: string;
+    lineWidth: number;
+    subGrid?: {
+      divisions: number;
+      color: string;
+      width: number;
+    };
   };
   limits: {
     maxCreatures: number;

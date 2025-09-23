@@ -1,6 +1,6 @@
 /**
  * Zustand game state store for Emoji Factory Builder
- * Centralized state management with all game logic and mutations
+ * Centralized state management with clean separation from business logic
  */
 
 import { create } from 'zustand';
@@ -23,20 +23,17 @@ import {
   GAME_CONFIG,
   getBuildingData,
   getCreatureData,
-  snapToGrid,
-  isValidPosition,
   getResourceInventoryCategory
 } from '../data/gameData';
 
-// ===== UTILITY FUNCTIONS =====
+// Import services
+import { GameSimulationService } from '../services/GameSimulationService';
+import { CreatureAIService } from '../services/CreatureAIService';
+import { BuildingService } from '../services/BuildingService';
+import { CreatureService } from '../services/CreatureService';
 
-function generateId(): string {
-  return Math.random().toString(36).substr(2, 9);
-}
-
-function calculateDistance(pos1: Position, pos2: Position): number {
-  return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
-}
+// Import utilities
+import { calculateDistance, generateId, snapToGrid, isValidPosition } from '../utils/gameUtils';
 
 // ===== INITIAL STATE =====
 
@@ -46,8 +43,8 @@ const initialGameState: GameState = {
     {
       id: 'initial-bone-kiln',
       type: 'bone_kiln',
-      x: 150,
-      y: 150,
+      x: 175, // Centered in grid cell (150 + 25)
+      y: 175, // Centered in grid cell (150 + 25)
       production: 0,
       storage: {},
       maxStorage: 20,
@@ -57,8 +54,8 @@ const initialGameState: GameState = {
     {
       id: 'initial-slime-pit',
       type: 'slime_pit',
-      x: 300,
-      y: 150,
+      x: 325, // Centered in grid cell (300 + 25)
+      y: 175, // Centered in grid cell (150 + 25)
       production: 0,
       storage: {},
       maxStorage: 20,
@@ -68,8 +65,8 @@ const initialGameState: GameState = {
     {
       id: 'initial-corpse-pile',
       type: 'corpse_pile',
-      x: 450,
-      y: 150,
+      x: 475, // Centered in grid cell (450 + 25)
+      y: 175, // Centered in grid cell (150 + 25)
       production: 0,
       storage: {},
       maxStorage: 50,
@@ -81,8 +78,8 @@ const initialGameState: GameState = {
     {
       id: 'initial-slime-1',
       type: 'slime',
-      x: 200,
-      y: 200,
+      x: 225, // Centered in grid cell (200 + 25)
+      y: 225, // Centered in grid cell (200 + 25)
       status: 'idle',
       carriedAmount: 0,
       energy: 100,
@@ -91,8 +88,8 @@ const initialGameState: GameState = {
     {
       id: 'initial-goblin-1',
       type: 'goblin',
-      x: 250,
-      y: 200,
+      x: 275, // Centered in grid cell (250 + 25)
+      y: 225, // Centered in grid cell (200 + 25)
       status: 'idle',
       carriedAmount: 0,
       energy: 100,
@@ -239,9 +236,12 @@ export const useGameStore = create<GameStore>()(
           }
           
           // Check total across all inventories
-          return Object.entries(cost).every(([resource, amount]) => 
-            state.actions.getTotalResource(resource as ResourceType) >= (amount || 0)
-          );
+          return Object.entries(cost).every(([resource, amount]) => {
+            const totalAmount = state.inventory.base[resource as ResourceType] + 
+                               state.inventory.construction[resource as ResourceType] + 
+                               state.inventory.logistics[resource as ResourceType];
+            return totalAmount >= (amount || 0);
+          });
         },
 
         transferResource: (type: ResourceType, amount: number, from: InventoryType, to: InventoryType): boolean => {
@@ -284,62 +284,27 @@ export const useGameStore = create<GameStore>()(
 
         placeBuilding: (type: BuildingType, position: Position): boolean => {
           const state = get();
-          const buildingData = getBuildingData(type);
           
-          // Check if building type is unlocked
-          if (!state.actions.isBuildingUnlocked(type)) {
-            state.actions.showToast(`${buildingData.name} is not yet unlocked!`, 'warning');
-            return false;
-          }
-          
-          // Check if we can afford it
-          if (!state.actions.canAfford(buildingData.cost)) {
-            const missingResources = Object.entries(buildingData.cost)
-              .filter(([resource, amount]) => state.actions.getTotalResource(resource as ResourceType) < (amount || 0))
-              .map(([resource, amount]) => `${amount} ${resource}`)
-              .join(', ');
-            
-            state.actions.showToast(`Not enough resources! Need: ${missingResources}`, 'error');
-            return false;
-          }
-
-          // Snap to grid
-          const snappedPos = snapToGrid(position.x, position.y);
-          
-          // Check if position is valid
-          if (!isValidPosition(snappedPos.x, snappedPos.y)) {
-            state.actions.showToast('Cannot place building outside the map boundaries!', 'warning');
-            return false;
-          }
-
-          // Check for overlapping buildings
-          const hasOverlap = state.buildings.some(building => 
-            Math.abs(building.x - snappedPos.x) < 40 && 
-            Math.abs(building.y - snappedPos.y) < 40
+          const validation = BuildingService.canPlaceBuilding(
+            type, 
+            position, 
+            state.buildings,
+            state.actions.canAfford,
+            state.actions.isBuildingUnlocked
           );
-
-          if (hasOverlap) {
-            state.actions.showToast('Cannot place building here - space is occupied!', 'warning');
+          
+          if (!validation.canPlace) {
+            state.actions.showToast(validation.reason || 'Cannot place building', 'error');
             return false;
           }
 
-          // Spend resources and place building
+          const buildingData = getBuildingData(type);
           if (state.actions.spendResources(buildingData.cost)) {
-            const newBuilding: BuildingState = {
-              id: generateId(),
-              type,
-              x: snappedPos.x,
-              y: snappedPos.y,
-              production: 0,
-              storage: {},
-              maxStorage: buildingData.storage || 20,
-              isWorking: false,
-              workers: []
-            };
+            const newBuilding = BuildingService.createBuilding(type, position);
 
             set((state) => ({
               buildings: [...state.buildings, newBuilding],
-              selectedBuildingType: null // Clear selection after placing
+              selectedBuildingType: null
             }), false, 'placeBuilding');
 
             state.actions.showToast(`${buildingData.name} placed successfully! 🏗️`, 'success');
@@ -361,56 +326,27 @@ export const useGameStore = create<GameStore>()(
 
         spawnCreature: (type: CreatureType, position: Position): boolean => {
           const state = get();
+          
+          const validation = CreatureService.canSpawnCreature(
+            type,
+            position, 
+            state.creatures,
+            state.actions.canAfford,
+            state.actions.isCreatureUnlocked
+          );
+          
+          if (!validation.canSpawn) {
+            state.actions.showToast(validation.reason || 'Cannot spawn creature', 'error');
+            return false;
+          }
+
           const creatureData = getCreatureData(type);
-          
-          // Check creature limit
-          if (state.creatures.length >= GAME_CONFIG.limits.maxCreatures) {
-            state.actions.showToast(`Maximum creature limit reached (${GAME_CONFIG.limits.maxCreatures})!`, 'warning');
-            return false;
-          }
-
-          // Check if creature type is unlocked
-          if (!state.actions.isCreatureUnlocked(type)) {
-            state.actions.showToast(`${creatureData.name} is not yet unlocked!`, 'warning');
-            return false;
-          }
-
-          // Check if we can afford it
-          if (!state.actions.canAfford(creatureData.cost)) {
-            const missingResources = Object.entries(creatureData.cost)
-              .filter(([resource, amount]) => state.actions.getTotalResource(resource as ResourceType) < (amount || 0))
-              .map(([resource, amount]) => `${amount} ${resource}`)
-              .join(', ');
-            
-            state.actions.showToast(`Not enough resources! Need: ${missingResources}`, 'error');
-            return false;
-          }
-
-          // Snap to grid
-          const snappedPos = snapToGrid(position.x, position.y);
-          
-          // Check if position is valid
-          if (!isValidPosition(snappedPos.x, snappedPos.y)) {
-            state.actions.showToast('Cannot spawn creature outside the map boundaries!', 'warning');
-            return false;
-          }
-
-          // Spend resources and spawn creature
           if (state.actions.spendResources(creatureData.cost)) {
-            const newCreature: CreatureState = {
-              id: generateId(),
-              type,
-              x: snappedPos.x,
-              y: snappedPos.y,
-              status: 'idle',
-              carriedAmount: 0,
-              energy: 100,
-              maxEnergy: 100
-            };
+            const newCreature = CreatureService.createCreature(type, position);
 
             set((state) => ({
               creatures: [...state.creatures, newCreature],
-              selectedCreatureType: null // Clear selection after spawning
+              selectedCreatureType: null
             }), false, 'spawnCreature');
 
             state.actions.showToast(`${creatureData.name} spawned successfully! 👹`, 'success');
@@ -439,6 +375,7 @@ export const useGameStore = create<GameStore>()(
         // ===== SELECTION MANAGEMENT =====
 
         selectBuildingType: (type: BuildingType | null) => {
+          console.log(`${new Date().toLocaleTimeString()} selectBuildingType called with:`, type);
           set((state) => ({
             selectedBuildingType: type,
             selectedCreatureType: null,
@@ -615,7 +552,7 @@ export const useGameStore = create<GameStore>()(
               const buildingData = getBuildingData(building.type);
               
               if (buildingData.produces && buildingData.rate) {
-                const productionAmount = (buildingData.rate * scaledDeltaTime) / 1000;
+                const productionAmount = (buildingData.rate * scaledDeltaTime * 10); // 10x faster production
                 return {
                   ...building,
                   production: building.production + productionAmount
@@ -667,11 +604,48 @@ export const useGameStore = create<GameStore>()(
                 );
               }
 
-              // Simple AI: If idle and energy > 50, seek work
+              // Simple AI: If idle and energy > 50, seek work (with cooldown)
               if (creature.status === 'idle' && creature.energy > 50) {
-                // Find nearest building that needs work
+                // Add work search cooldown to prevent spam
+                const now = Date.now();
+                const lastWorkSearch = (creature as any).lastWorkSearch || 0;
+                const workSearchCooldown = 2000; // 2 seconds between work searches
+                
+                if (now - lastWorkSearch >= workSearchCooldown) {
+                  console.log(`🧠 ${new Date().toLocaleTimeString()} Creature ${creature.id} is idle and seeking work (energy: ${creature.energy.toFixed(1)}, carried: ${creature.carriedAmount})`);
+                  // Find nearest production building that needs work (exclude storage buildings)
+                  const nearestBuilding = finalBuildings
+                    .filter(building => 
+                      building.type !== 'corpse_pile' && // Exclude storage buildings
+                      building.workers.length < 2 && // Max 2 workers per building
+                      building.production >= 1 // Only target buildings with at least 1 unit ready
+                    )
+                    .reduce((nearest, building) => {
+                      const distance = calculateDistance(creature, building);
+                      return !nearest || distance < calculateDistance(creature, nearest) 
+                        ? building 
+                        : nearest;
+                    }, null as BuildingState | null);
+
+                  if (nearestBuilding) {
+                    console.log(`🎯 ${new Date().toLocaleTimeString()} Creature ${creature.id} found work at ${nearestBuilding.id} (${nearestBuilding.type})`);
+                    newCreature.status = 'traveling';
+                    newCreature.targetX = nearestBuilding.x;
+                    newCreature.targetY = nearestBuilding.y;
+                    newCreature.targetBuilding = nearestBuilding.id;
+                    (newCreature as any).lastWorkSearch = now;
+                  } else {
+                    console.log(`❌ ${new Date().toLocaleTimeString()} No available work found for creature ${creature.id}`);
+                    (newCreature as any).lastWorkSearch = now; // Still set cooldown to prevent spam
+                  }
+                }
+              }
                 const nearestBuilding = finalBuildings
-                  .filter(building => building.workers.length < 2) // Max 2 workers per building
+                  .filter(building => 
+                    building.type !== 'corpse_pile' && // Exclude storage buildings
+                    building.workers.length < 2 && // Max 2 workers per building
+                    building.production >= 1 // Only target buildings with at least 1 unit ready
+                  )
                   .reduce((nearest, building) => {
                     const distance = calculateDistance(creature, building);
                     return !nearest || distance < calculateDistance(creature, nearest) 
@@ -680,12 +654,15 @@ export const useGameStore = create<GameStore>()(
                   }, null as BuildingState | null);
 
                 if (nearestBuilding) {
+                  console.log(`🎯 ${new Date().toLocaleTimeString()} Creature ${creature.id} found work at ${nearestBuilding.id} (${nearestBuilding.type})`);
                   newCreature.status = 'traveling';
                   newCreature.targetX = nearestBuilding.x;
                   newCreature.targetY = nearestBuilding.y;
                   newCreature.targetBuilding = nearestBuilding.id;
+                } else {
+                  console.log(`❌ ${new Date().toLocaleTimeString()} No available work found for creature ${creature.id}`);
                 }
-              }
+              
 
               // Handle movement
               if (creature.status === 'traveling' && creature.targetX !== undefined && creature.targetY !== undefined) {
@@ -697,14 +674,97 @@ export const useGameStore = create<GameStore>()(
                   // Reached target
                   newCreature.x = creature.targetX;
                   newCreature.y = creature.targetY;
-                  newCreature.status = 'working';
+                  
+                  // Check what type of building we reached
+                  const targetBuilding = finalBuildings.find(b => b.id === creature.targetBuilding);
+                  if (targetBuilding && targetBuilding.type === 'corpse_pile' && creature.carriedAmount > 0) {
+                    // Reached storage building with resources - drop them off immediately
+                    console.log(`📦 ${new Date().toLocaleTimeString()} Creature ${creature.id} dropping off ${creature.carriedAmount} resources at ${targetBuilding.id}`);
+                    newCreature.carriedAmount = 0;
+                    newCreature.status = 'idle';
+                    newCreature.targetBuilding = undefined;
+                  } else {
+                    // Reached production building - start working
+                    console.log(`🔨 ${new Date().toLocaleTimeString()} Creature ${creature.id} starting work at ${targetBuilding?.id || 'unknown building'}`);
+                    newCreature.status = 'working';
+                  }
+                  
                   newCreature.targetX = undefined;
                   newCreature.targetY = undefined;
                 } else {
                   // Move towards target
-                  const moveSpeed = (creatureData.speed * scaledDeltaTime) / 1000 * 50; // pixels per second
-                  newCreature.x += (dx / distance) * moveSpeed;
-                  newCreature.y += (dy / distance) * moveSpeed;
+                  const moveSpeed = creatureData.speed * scaledDeltaTime * 50; // pixels per update
+                  
+                  // Prevent overshooting by limiting movement to remaining distance
+                  const actualMoveDistance = Math.min(moveSpeed, distance);
+                  
+                  newCreature.x = creature.x + (dx / distance) * actualMoveDistance;
+                  newCreature.y = creature.y + (dy / distance) * actualMoveDistance;
+                }
+              }
+
+              // Handle working at production buildings
+              if (creature.status === 'working' && creature.targetBuilding) {
+                const targetBuilding = finalBuildings.find(b => b.id === creature.targetBuilding);
+                if (targetBuilding && targetBuilding.type !== 'corpse_pile') {
+                  // Only work at production buildings, not storage
+                  console.log(`🔍 ${new Date().toLocaleTimeString()} Creature ${creature.id} checking building ${targetBuilding.id}: production=${targetBuilding.production}, capacity=${creatureData.capacity}, carried=${creature.carriedAmount}`);
+                  
+                  if (creature.carriedAmount < creatureData.capacity && targetBuilding.production >= 1) {
+                    const collectAmount = Math.min(
+                      creatureData.capacity - creature.carriedAmount,
+                      Math.floor(targetBuilding.production), // Only collect whole units
+                      1 // Collect 1 unit at a time
+                    );
+                    console.log(`📦 ${new Date().toLocaleTimeString()} Creature ${creature.id} collecting ${collectAmount} from ${targetBuilding.id} (production was ${targetBuilding.production})`);
+                    newCreature.carriedAmount += collectAmount;
+                    
+                    // Actually consume the production from the building
+                    const buildingIndex = finalBuildings.findIndex(b => b.id === targetBuilding.id);
+                    if (buildingIndex !== -1) {
+                      finalBuildings[buildingIndex] = {
+                        ...finalBuildings[buildingIndex],
+                        production: finalBuildings[buildingIndex].production - collectAmount
+                      };
+                    }
+                    
+                    // If now at capacity, find a place to deliver
+                    if (newCreature.carriedAmount >= creatureData.capacity) {
+                      console.log(`🎒 ${new Date().toLocaleTimeString()} Creature ${creature.id} now at capacity, seeking delivery`);
+                      newCreature.status = 'idle'; // Will seek delivery next update
+                      newCreature.targetBuilding = undefined;
+                    }
+                  } else {
+                    console.log(`❌ ${new Date().toLocaleTimeString()} Creature ${creature.id} can't collect: carried=${creature.carriedAmount}/${creatureData.capacity}, production=${targetBuilding.production} (need >= 1)`);
+                    // Nothing to collect or at capacity, go idle
+                    newCreature.status = 'idle';
+                    newCreature.targetBuilding = undefined;
+                  }
+                } else if (targetBuilding && targetBuilding.type === 'corpse_pile') {
+                  console.log(`⚠️ ${new Date().toLocaleTimeString()} Creature ${creature.id} tried to work at storage building - going idle`);
+                  // Don't work at storage buildings
+                  newCreature.status = 'idle';
+                  newCreature.targetBuilding = undefined;
+                }
+              }
+
+              // Handle delivery - if carrying resources and idle, find storage
+              if (creature.status === 'idle' && creature.carriedAmount > 0) {
+                // Find nearest storage building (corpse pile for now)
+                const storageBuilding = finalBuildings
+                  .filter(building => building.type === 'corpse_pile')
+                  .reduce((nearest, building) => {
+                    const distance = calculateDistance(creature, building);
+                    return !nearest || distance < calculateDistance(creature, nearest) 
+                      ? building 
+                      : nearest;
+                  }, null as BuildingState | null);
+
+                if (storageBuilding) {
+                  newCreature.status = 'traveling';
+                  newCreature.targetX = storageBuilding.x;
+                  newCreature.targetY = storageBuilding.y;
+                  newCreature.targetBuilding = storageBuilding.id;
                 }
               }
 

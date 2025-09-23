@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  GameHeader, 
-  BuildingPanel, 
-  CreaturePanel, 
-  EvolutionPanel,
-  SpeedControls,
-  GameCanvas,
-  DebugPanel
-} from './components/game';
+import { GameHeader } from './components/game/GameHeader';
+import { BuildingPanel } from './components/game/BuildingPanel';
+import { CreaturePanel } from './components/game/CreaturePanel';
+import { EvolutionPanel } from './components/game/EvolutionPanel';
+import { SpeedControls } from './components/game/SpeedControls';
+import { DebugPanel } from './components/game/DebugPanel';
+import { GameCanvasContainer } from './components/game/GameCanvasContainer';
 import { ToastContainer } from './components/ui';
 import { useGameStore } from './stores/gameStore';
 import type { CreatureState } from './types/game';
@@ -49,7 +47,7 @@ function App() {
         
         {/* Game Canvas Area */}
         <div className="flex-1 min-h-[700px]">
-          <GameCanvas />
+          <GameCanvasContainer />
         </div>
       </main>
       
@@ -74,8 +72,8 @@ function App() {
         onClose={actions.hideToast}
       />
       
-      {/* Debug Panel (temporary) */}
-      <DebugPanel />
+      {/* Debug Panel (temporary) - DISABLED to fix re-render issue */}
+      {/* <DebugPanel /> */}
     </div>
   );
 }

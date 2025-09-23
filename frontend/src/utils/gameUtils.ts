@@ -27,13 +27,42 @@ export function calculateDistance(pos1: Position, pos2: Position): number {
 
 export function snapToGrid(x: number, y: number, gridSize: number = 50): Position {
   return {
-    x: Math.round(x / gridSize) * gridSize,
-    y: Math.round(y / gridSize) * gridSize
+    x: Math.round(x / gridSize) * gridSize + gridSize / 2,
+    y: Math.round(y / gridSize) * gridSize + gridSize / 2
+  };
+}
+
+export function pixelToGrid(x: number, y: number, gridSize: number = 50): { gridX: number; gridY: number } {
+  return {
+    gridX: Math.round(x / gridSize),
+    gridY: Math.round(y / gridSize)
+  };
+}
+
+export function gridToPixel(gridX: number, gridY: number, gridSize: number = 50): Position {
+  return {
+    x: gridX * gridSize,
+    y: gridY * gridSize
   };
 }
 
 export function isValidPosition(x: number, y: number, canvasWidth = 1000, canvasHeight = 700): boolean {
-  return x >= 20 && x <= canvasWidth - 20 && y >= 20 && y <= canvasHeight - 20;
+  const gridSize = GAME_CONFIG.grid?.size || 50;
+  return x >= gridSize/2 && x <= canvasWidth - gridSize/2 && 
+         y >= gridSize/2 && y <= canvasHeight - gridSize/2;
+}
+
+export function isValidGridPosition(
+  gridX: number, 
+  gridY: number, 
+  canvasWidth = 1000, 
+  canvasHeight = 700,
+  gridSize = 50
+): boolean {
+  const maxGridX = Math.floor(canvasWidth / gridSize);
+  const maxGridY = Math.floor(canvasHeight / gridSize);
+  
+  return gridX >= 0 && gridX < maxGridX && gridY >= 0 && gridY < maxGridY;
 }
 
 export function isPositionOccupied(

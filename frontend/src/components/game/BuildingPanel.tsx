@@ -36,9 +36,12 @@ const BuildingItem = React.memo<BuildingItemProps>(({ type, isSelected, canAffor
         !isSelected && 'border-card-border bg-surface hover:border-primary text-text',
         !canAfford && 'opacity-50 cursor-not-allowed hover:border-card-border'
       )}
-      onClick={() => canAfford && onSelect(type)}
+      onClick={() => {
+        console.log('BuildingItem clicked:', { type, canAfford, onSelect });
+        onSelect(type);
+      }}
       role="button"
-      tabIndex={canAfford ? 0 : -1}
+      tabIndex={0}
       aria-pressed={isSelected}
       aria-disabled={!canAfford}
     >
@@ -107,8 +110,7 @@ export const BuildingPanel = React.memo<BuildingPanelProps>(({ className }) => {
             className="mt-4 p-3 bg-bg-1 rounded-lg border border-primary/20"
           >
             <p className="text-sm text-text-muted">
-              Click on the canvas to place your selected building. 
-              Use right-click for placement, left-click to select objects.
+              Click on the canvas to place your selected building.
             </p>
           </motion.div>
         )}

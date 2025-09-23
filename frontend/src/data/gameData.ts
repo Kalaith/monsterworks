@@ -331,7 +331,19 @@ export const GAME_CONFIG: GameConfig = {
   canvas: {
     width: 1000,
     height: 700,
-    gridSize: 20
+    gridSize: 50 // Legacy support
+  },
+  grid: {
+    size: 50,
+    showLines: true,
+    snapToGrid: true,
+    lineColor: 'rgba(100, 100, 100, 0.3)',
+    lineWidth: 1,
+    subGrid: {
+      divisions: 2,
+      color: 'rgba(100, 100, 100, 0.1)',
+      width: 0.5
+    }
   },
   limits: {
     maxCreatures: 50,
@@ -572,14 +584,55 @@ export function isValidPosition(x: number, y: number): boolean {
 }
 
 /**
- * Snap position to grid
+ * Snap position to grid center (places items in center of grid cells)
  */
-export function snapToGrid(x: number, y: number): { x: number; y: number } {
-  const gridSize = GAME_CONFIG.canvas.gridSize;
+export function snapToGrid(x: number, y: number, gridSize?: number): { x: number; y: number } {
+  const size = gridSize || GAME_CONFIG.grid.size;
   return {
-    x: Math.round(x / gridSize) * gridSize,
-    y: Math.round(y / gridSize) * gridSize
+    x: Math.round(x / size) * size + size / 2,
+    y: Math.round(y / size) * size + size / 2
   };
+}
+
+/**
+ * Convert pixel position to grid coordinates
+ */
+export function pixelToGrid(x: number, y: number, gridSize?: number): { gridX: number; gridY: number } {
+  const size = gridSize || GAME_CONFIG.grid.size;
+  return {
+    gridX: Math.round(x / size),
+    gridY: Math.round(y / size)
+  };
+}
+
+/**
+ * Convert grid coordinates to pixel position
+ */
+export function gridToPixel(gridX: number, gridY: number, gridSize?: number): { x: number; y: number } {
+  const size = gridSize || GAME_CONFIG.grid.size;
+  return {
+    x: gridX * size,
+    y: gridY * size
+  };
+}
+
+/**
+ * Check if grid position is valid (within bounds and not occupied)
+ */
+export function isValidGridPosition(
+  gridX: number, 
+  gridY: number, 
+  canvasWidth?: number, 
+  canvasHeight?: number
+): boolean {
+  const width = canvasWidth || GAME_CONFIG.canvas.width;
+  const height = canvasHeight || GAME_CONFIG.canvas.height;
+  const gridSize = GAME_CONFIG.grid.size;
+  
+  const maxGridX = Math.floor(width / gridSize);
+  const maxGridY = Math.floor(height / gridSize);
+  
+  return gridX >= 0 && gridX < maxGridX && gridY >= 0 && gridY < maxGridY;
 }
 
 // ===== EXPORT DEFAULT =====
