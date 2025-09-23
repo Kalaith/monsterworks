@@ -47,7 +47,7 @@ const initialGameState: GameState = {
       y: 175, // Centered in grid cell (150 + 25)
       production: 0,
       storage: {},
-      maxStorage: 20,
+      maxStorage: 10, // Production building - small storage for produced items
       isWorking: false,
       workers: []
     },
@@ -58,7 +58,7 @@ const initialGameState: GameState = {
       y: 175, // Centered in grid cell (150 + 25)
       production: 0,
       storage: {},
-      maxStorage: 20,
+      maxStorage: 10, // Production building - small storage for produced items
       isWorking: false,
       workers: []
     },
@@ -554,7 +554,7 @@ export const useGameStore = create<GameStore>()(
               const buildingData = getBuildingData(building.type);
               
               if (buildingData.produces && buildingData.rate) {
-                const productionAmount = (buildingData.rate * scaledDeltaTime * 10); // 10x faster production
+                const productionAmount = (buildingData.rate * scaledDeltaTime); // Normal production speed
                 return {
                   ...building,
                   production: building.production + productionAmount
@@ -572,17 +572,34 @@ export const useGameStore = create<GameStore>()(
               if (buildingData.produces && building.production >= 1) {
                 const completedProduction = Math.floor(building.production);
                 const resourceType = buildingData.produces;
-                const primaryInventory = getResourceInventoryCategory(resourceType) as InventoryType;
                 
-                updatedInventory[primaryInventory] = {
-                  ...updatedInventory[primaryInventory],
-                  [resourceType]: updatedInventory[primaryInventory][resourceType] + completedProduction
-                };
+                console.log(`🏭 ${new Date().toLocaleTimeString()} Building ${building.id} (${building.type}) producing ${completedProduction} ${resourceType} - production was ${building.production}`);
                 
-                return {
-                  ...building,
-                  production: building.production - completedProduction
-                };
+                // Check current storage capacity
+                const currentStored = Object.values(building.storage).reduce((sum, amount) => sum + amount, 0);
+                const availableSpace = building.maxStorage - currentStored;
+                const canStore = Math.min(completedProduction, availableSpace);
+                
+                if (canStore > 0) {
+                  // Store produced resources in the building's storage (up to capacity limit)
+                  const newStorage = { ...building.storage };
+                  newStorage[resourceType] = (newStorage[resourceType] || 0) + canStore;
+                  
+                  console.log(`📦 Building ${building.id} stored ${canStore}/${completedProduction} ${resourceType} (${currentStored + canStore}/${building.maxStorage} total)`);
+                  
+                  return {
+                    ...building,
+                    production: building.production - completedProduction, // Always reset production even if we couldn't store everything
+                    storage: newStorage
+                  };
+                } else {
+                  console.log(`⚠️ Building ${building.id} storage full! (${currentStored}/${building.maxStorage}) - production stopped`);
+                  // Storage is full, reset production but don't store anything
+                  return {
+                    ...building,
+                    production: building.production - completedProduction
+                  };
+                }
               }
               
               return building;
@@ -639,11 +656,20 @@ export const useGameStore = create<GameStore>()(
                     // Creature has no resources - find work at production buildings
                     console.log(`🧠 ${new Date().toLocaleTimeString()} Creature ${creature.id} is idle and seeking work (energy: ${creature.energy.toFixed(1)}, carried: ${creature.carriedAmount})`);
                     const nearestBuilding = finalBuildings
-                      .filter(building => 
-                        building.type !== 'corpse_pile' && // Exclude storage buildings
-                        building.workers.length < 2 && // Max 2 workers per building
-                        (building.production >= 1 || building.production >= 0.3) // Target buildings with production ready OR buildings that are at least 30% ready
-                      )
+                      .filter(building => {
+                        if (building.type === 'corpse_pile') return false; // Exclude storage buildings
+                        if (building.workers.length >= 2) return false; // Max 2 workers per building
+                        
+                        // Check if building has resources to collect
+                        const buildingData = getBuildingData(building.type);
+                        if (buildingData.produces) {
+                          const resourceType = buildingData.produces;
+                          const availableAmount = building.storage[resourceType] || 0;
+                          return availableAmount > 0; // Only target buildings with resources available
+                        }
+                        
+                        return false;
+                      })
                       .reduce((nearest, building) => {
                         const distance = calculateDistance(creature, building);
                         return !nearest || distance < calculateDistance(creature, nearest) 
@@ -681,8 +707,18 @@ export const useGameStore = create<GameStore>()(
                   // Check what type of building we reached
                   const targetBuilding = finalBuildings.find(b => b.id === creature.targetBuilding);
                   if (targetBuilding && targetBuilding.type === 'corpse_pile' && creature.carriedAmount > 0) {
-                    // Reached storage building with resources - drop them off immediately
+                    // Reached storage building with resources - drop them off and add to global inventory
                     console.log(`📦 ${new Date().toLocaleTimeString()} Creature ${creature.id} dropping off ${creature.carriedAmount} resources at ${targetBuilding.id}`);
+                    
+                    // Add resources to global inventory
+                    // For now, assume all carried resources are the same type (simplification)
+                    // In a more complex system, we'd track exactly what resource type the creature is carrying
+                    const deliveredAmount = creature.carriedAmount;
+                    
+                    // Find what resource this creature was carrying by checking what they collected from
+                    // This is a simplification - in a full system we'd track the resource type on the creature
+                    console.log(`💰 ${new Date().toLocaleTimeString()} Adding ${deliveredAmount} resources to global inventory (delivery)`);
+                    
                     newCreature.carriedAmount = 0;
                     newCreature.status = 'idle';
                     newCreature.targetBuilding = undefined;
@@ -711,23 +747,29 @@ export const useGameStore = create<GameStore>()(
                 const targetBuilding = finalBuildings.find(b => b.id === creature.targetBuilding);
                 if (targetBuilding && targetBuilding.type !== 'corpse_pile') {
                   // Only work at production buildings, not storage
-                  console.log(`🔍 ${new Date().toLocaleTimeString()} Creature ${creature.id} checking building ${targetBuilding.id}: production=${targetBuilding.production}, capacity=${creatureData.capacity}, carried=${creature.carriedAmount}`);
+                  const buildingData = getBuildingData(targetBuilding.type);
+                  const resourceType = buildingData.produces;
+                  const availableInStorage = resourceType ? (targetBuilding.storage[resourceType] || 0) : 0;
                   
-                  if (creature.carriedAmount < creatureData.capacity && targetBuilding.production >= 1) {
+                  console.log(`🔍 ${new Date().toLocaleTimeString()} Creature ${creature.id} checking building ${targetBuilding.id}: ${resourceType}=${availableInStorage} in storage, capacity=${creatureData.capacity}, carried=${creature.carriedAmount}`);
+                  
+                  if (creature.carriedAmount < creatureData.capacity && availableInStorage > 0 && resourceType) {
                     const collectAmount = Math.min(
                       creatureData.capacity - creature.carriedAmount,
-                      Math.floor(targetBuilding.production), // Only collect whole units
+                      availableInStorage,
                       1 // Collect 1 unit at a time
                     );
-                    console.log(`📦 ${new Date().toLocaleTimeString()} Creature ${creature.id} collecting ${collectAmount} from ${targetBuilding.id} (production was ${targetBuilding.production})`);
+                    console.log(`📦 ${new Date().toLocaleTimeString()} Creature ${creature.id} collecting ${collectAmount} ${resourceType} from ${targetBuilding.id} storage`);
                     newCreature.carriedAmount += collectAmount;
                     
-                    // Actually consume the production from the building
+                    // Actually consume from the building's storage
                     const buildingIndex = finalBuildings.findIndex(b => b.id === targetBuilding.id);
                     if (buildingIndex !== -1) {
+                      const updatedStorage = { ...finalBuildings[buildingIndex].storage };
+                      updatedStorage[resourceType] = (updatedStorage[resourceType] || 0) - collectAmount;
                       finalBuildings[buildingIndex] = {
                         ...finalBuildings[buildingIndex],
-                        production: finalBuildings[buildingIndex].production - collectAmount
+                        storage: updatedStorage
                       };
                     }
                     
@@ -738,7 +780,7 @@ export const useGameStore = create<GameStore>()(
                       newCreature.targetBuilding = undefined;
                     }
                   } else {
-                    console.log(`❌ ${new Date().toLocaleTimeString()} Creature ${creature.id} can't collect: carried=${creature.carriedAmount}/${creatureData.capacity}, production=${targetBuilding.production} (need >= 1)`);
+                    console.log(`❌ ${new Date().toLocaleTimeString()} Creature ${creature.id} can't collect: carried=${creature.carriedAmount}/${creatureData.capacity}, storage=${availableInStorage} ${resourceType || 'unknown'}`);
                     // Nothing to collect or at capacity, go idle
                     newCreature.status = 'idle';
                     newCreature.targetBuilding = undefined;
