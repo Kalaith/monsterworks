@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../dist', // Build to parent directory for easier deployment
+    outDir: 'dist',
     emptyOutDir: true,
   },
 })
