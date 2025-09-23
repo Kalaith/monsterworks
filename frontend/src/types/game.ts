@@ -114,6 +114,7 @@ export interface CreatureState {
   targetBuilding?: string; // Building ID
   energy: number;
   maxEnergy: number;
+  lastWorkSearch?: number; // Timestamp for work search cooldown
 }
 
 // ===== BUILDING TYPES =====

@@ -148,12 +148,12 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
       ctx.font = '12px Arial';
       ctx.fillText(resourceData.emoji, building.x, building.y - 15);
       
-      // Show production amount
+      // Show production amount (display actual production progress toward next unit)
       ctx.font = '10px Arial';
       ctx.fillStyle = '#0066cc';
-      const productionValue = Math.floor(building.production * 10);
-      const maxProduction = 10; // Assuming max production is 1.0, so 10/10 when scaled
-      ctx.fillText(`${Math.min(productionValue, maxProduction)}/${maxProduction}`, building.x, building.y - 25);
+      const productionProgress = (building.production % 1); // Show fractional progress toward next unit
+      const displayValue = Math.floor(productionProgress * 100); // Show as percentage
+      ctx.fillText(`${displayValue}%`, building.x, building.y - 25);
     }
 
     // Show storage levels with current/max

@@ -83,7 +83,8 @@ const initialGameState: GameState = {
       status: 'idle',
       carriedAmount: 0,
       energy: 100,
-      maxEnergy: 100
+      maxEnergy: 100,
+      lastWorkSearch: 0
     },
     {
       id: 'initial-goblin-1',
@@ -93,7 +94,8 @@ const initialGameState: GameState = {
       status: 'idle',
       carriedAmount: 0,
       energy: 100,
-      maxEnergy: 100
+      maxEnergy: 100,
+      lastWorkSearch: 0
     }
   ],
   gameSpeed: 1,
@@ -589,7 +591,9 @@ export const useGameStore = create<GameStore>()(
             // Update creatures (AI, movement, energy)
             const updatedCreatures = currentState.creatures.map(creature => {
               const creatureData = getCreatureData(creature.type);
-              let newCreature = { ...creature };
+              let newCreature = { 
+                ...creature
+              };
 
               // Update energy
               if (creature.status === 'resting') {
@@ -604,64 +608,63 @@ export const useGameStore = create<GameStore>()(
                 );
               }
 
-              // Simple AI: If idle and energy > 50, seek work (with cooldown)
+              // Simple AI: If idle and energy > 50, seek work or delivery (with cooldown)
               if (creature.status === 'idle' && creature.energy > 50) {
                 // Add work search cooldown to prevent spam
                 const now = Date.now();
-                const lastWorkSearch = (creature as any).lastWorkSearch || 0;
-                const workSearchCooldown = 2000; // 2 seconds between work searches
+                const lastWorkSearch = newCreature.lastWorkSearch || 0;
+                const workSearchCooldown = 5000; // 5 seconds between work searches to reduce spam
+                
+                console.log(`🕐 ${new Date().toLocaleTimeString()} Creature ${creature.id} cooldown check: now=${now}, last=${lastWorkSearch}, diff=${now - lastWorkSearch}ms, needed=${workSearchCooldown}ms`);
                 
                 if (now - lastWorkSearch >= workSearchCooldown) {
-                  console.log(`🧠 ${new Date().toLocaleTimeString()} Creature ${creature.id} is idle and seeking work (energy: ${creature.energy.toFixed(1)}, carried: ${creature.carriedAmount})`);
-                  // Find nearest production building that needs work (exclude storage buildings)
-                  const nearestBuilding = finalBuildings
-                    .filter(building => 
-                      building.type !== 'corpse_pile' && // Exclude storage buildings
-                      building.workers.length < 2 && // Max 2 workers per building
-                      building.production >= 1 // Only target buildings with at least 1 unit ready
-                    )
-                    .reduce((nearest, building) => {
-                      const distance = calculateDistance(creature, building);
-                      return !nearest || distance < calculateDistance(creature, nearest) 
-                        ? building 
-                        : nearest;
-                    }, null as BuildingState | null);
-
-                  if (nearestBuilding) {
-                    console.log(`🎯 ${new Date().toLocaleTimeString()} Creature ${creature.id} found work at ${nearestBuilding.id} (${nearestBuilding.type})`);
-                    newCreature.status = 'traveling';
-                    newCreature.targetX = nearestBuilding.x;
-                    newCreature.targetY = nearestBuilding.y;
-                    newCreature.targetBuilding = nearestBuilding.id;
-                    (newCreature as any).lastWorkSearch = now;
+                  
+                  if (creature.carriedAmount > 0) {
+                    // Creature is carrying resources - find storage to deliver to
+                    console.log(`🚚 ${new Date().toLocaleTimeString()} Creature ${creature.id} carrying ${creature.carriedAmount} resources, seeking delivery`);
+                    const storageBuilding = finalBuildings.find(building => building.type === 'corpse_pile');
+                    
+                    if (storageBuilding) {
+                      console.log(`🎯 ${new Date().toLocaleTimeString()} Creature ${creature.id} found storage at ${storageBuilding.id}`);
+                      newCreature.status = 'traveling';
+                      newCreature.targetX = storageBuilding.x;
+                      newCreature.targetY = storageBuilding.y;
+                      newCreature.targetBuilding = storageBuilding.id;
+                      newCreature.lastWorkSearch = now;
+                    } else {
+                      console.log(`❌ ${new Date().toLocaleTimeString()} Creature ${creature.id} can't find storage building!`);
+                      newCreature.lastWorkSearch = now;
+                    }
                   } else {
-                    console.log(`❌ ${new Date().toLocaleTimeString()} No available work found for creature ${creature.id}`);
-                    (newCreature as any).lastWorkSearch = now; // Still set cooldown to prevent spam
+                    // Creature has no resources - find work at production buildings
+                    console.log(`🧠 ${new Date().toLocaleTimeString()} Creature ${creature.id} is idle and seeking work (energy: ${creature.energy.toFixed(1)}, carried: ${creature.carriedAmount})`);
+                    const nearestBuilding = finalBuildings
+                      .filter(building => 
+                        building.type !== 'corpse_pile' && // Exclude storage buildings
+                        building.workers.length < 2 && // Max 2 workers per building
+                        (building.production >= 1 || building.production >= 0.3) // Target buildings with production ready OR buildings that are at least 30% ready
+                      )
+                      .reduce((nearest, building) => {
+                        const distance = calculateDistance(creature, building);
+                        return !nearest || distance < calculateDistance(creature, nearest) 
+                          ? building 
+                          : nearest;
+                      }, null as BuildingState | null);
+
+                    if (nearestBuilding) {
+                      console.log(`🎯 ${new Date().toLocaleTimeString()} Creature ${creature.id} found work at ${nearestBuilding.id} (${nearestBuilding.type}) - production: ${nearestBuilding.production.toFixed(2)}`);
+                      newCreature.status = 'traveling';
+                      newCreature.targetX = nearestBuilding.x;
+                      newCreature.targetY = nearestBuilding.y;
+                      newCreature.targetBuilding = nearestBuilding.id;
+                      newCreature.lastWorkSearch = now;
+                    } else {
+                      console.log(`❌ ${new Date().toLocaleTimeString()} No available work found for creature ${creature.id} (checked ${finalBuildings.length} buildings)`);
+                      newCreature.lastWorkSearch = now + 8000; // Add extra 8 second delay when no work found
+                    }
                   }
                 }
               }
-                const nearestBuilding = finalBuildings
-                  .filter(building => 
-                    building.type !== 'corpse_pile' && // Exclude storage buildings
-                    building.workers.length < 2 && // Max 2 workers per building
-                    building.production >= 1 // Only target buildings with at least 1 unit ready
-                  )
-                  .reduce((nearest, building) => {
-                    const distance = calculateDistance(creature, building);
-                    return !nearest || distance < calculateDistance(creature, nearest) 
-                      ? building 
-                      : nearest;
-                  }, null as BuildingState | null);
-
-                if (nearestBuilding) {
-                  console.log(`🎯 ${new Date().toLocaleTimeString()} Creature ${creature.id} found work at ${nearestBuilding.id} (${nearestBuilding.type})`);
-                  newCreature.status = 'traveling';
-                  newCreature.targetX = nearestBuilding.x;
-                  newCreature.targetY = nearestBuilding.y;
-                  newCreature.targetBuilding = nearestBuilding.id;
-                } else {
-                  console.log(`❌ ${new Date().toLocaleTimeString()} No available work found for creature ${creature.id}`);
-                }
               
 
               // Handle movement
