@@ -182,3 +182,9 @@ This game implements a **factory automation** genre with a **dark fantasy** them
 ---
 
 *Monsterworks is actively in development. This README reflects the current state as of the latest build.*
+
+## License
+
+This project is licensed under the MIT License - see the individual component README files for details.
+
+Part of the WebHatchery game collection.
