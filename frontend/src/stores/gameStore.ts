@@ -27,13 +27,11 @@ import {
 } from '../data/gameData';
 
 // Import services
-import { GameSimulationService } from '../services/GameSimulationService';
-import { CreatureAIService } from '../services/CreatureAIService';
 import { BuildingService } from '../services/BuildingService';
 import { CreatureService } from '../services/CreatureService';
 
 // Import utilities
-import { calculateDistance, generateId, snapToGrid, isValidPosition } from '../utils/gameUtils';
+import { calculateDistance } from '../utils/gameUtils';
 
 // ===== INITIAL STATE =====
 
@@ -378,7 +376,7 @@ export const useGameStore = create<GameStore>()(
 
         selectBuildingType: (type: BuildingType | null) => {
           console.log(`${new Date().toLocaleTimeString()} selectBuildingType called with:`, type);
-          set((state) => ({
+          set(() => ({
             selectedBuildingType: type,
             selectedCreatureType: null,
             selectedObject: null
@@ -386,7 +384,7 @@ export const useGameStore = create<GameStore>()(
         },
 
         selectCreatureType: (type: CreatureType | null) => {
-          set((state) => ({
+          set(() => ({
             selectedCreatureType: type,
             selectedBuildingType: null,
             selectedObject: null
@@ -394,7 +392,7 @@ export const useGameStore = create<GameStore>()(
         },
 
         selectObject: (type: 'building' | 'creature', id: string) => {
-          set((state) => ({
+          set(() => ({
             selectedObject: { type, id },
             selectedBuildingType: null,
             selectedCreatureType: null
@@ -402,7 +400,7 @@ export const useGameStore = create<GameStore>()(
         },
 
         clearSelection: () => {
-          set((state) => ({
+          set(() => ({
             selectedBuildingType: null,
             selectedCreatureType: null,
             selectedObject: null
@@ -412,7 +410,7 @@ export const useGameStore = create<GameStore>()(
         // ===== GAME CONTROLS =====
 
         setGameSpeed: (speed: number) => {
-          set((state) => ({
+          set(() => ({
             gameSpeed: Math.max(0, Math.min(4, speed))
           }), false, 'setGameSpeed');
         },
@@ -432,7 +430,7 @@ export const useGameStore = create<GameStore>()(
             : state.creatures.find(c => c.id === id);
 
           if (data) {
-            set((state) => ({
+            set(() => ({
               showInfoPanel: true,
               infoPanelContent: { type, data }
             }), false, 'showInfo');
@@ -440,14 +438,14 @@ export const useGameStore = create<GameStore>()(
         },
 
         hideInfo: () => {
-          set((state) => ({
+          set(() => ({
             showInfoPanel: false,
             infoPanelContent: undefined
           }), false, 'hideInfo');
         },
 
         setTheme: (theme: 'light' | 'dark' | 'system') => {
-          set((state) => ({ theme }), false, 'setTheme');
+          set(() => ({ theme }), false, 'setTheme');
           
           // Apply theme to document
           if (theme === 'system') {
@@ -565,7 +563,7 @@ export const useGameStore = create<GameStore>()(
             });
 
             // Process completed production (integer amounts)
-            let updatedInventory = { ...currentState.inventory };
+            const updatedInventory = { ...currentState.inventory };
             const finalBuildings = updatedBuildings.map(building => {
               const buildingData = getBuildingData(building.type);
               
@@ -608,7 +606,7 @@ export const useGameStore = create<GameStore>()(
             // Update creatures (AI, movement, energy)
             const updatedCreatures = currentState.creatures.map(creature => {
               const creatureData = getCreatureData(creature.type);
-              let newCreature = { 
+              const newCreature = { 
                 ...creature
               };
 

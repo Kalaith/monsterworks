@@ -6,13 +6,8 @@ export const useGameLoop = () => {
   const lastTimeRef = useRef<number>(0);
   const lastUpdateRef = useRef<number>(0);
 
-  // Get initial values but don't subscribe to changes
-  const initialGameSpeed = useGameStore.getState().gameSpeed;
-  const initialIsPaused = useGameStore.getState().isPaused;
-
   useEffect(() => {
     const gameLoop = (currentTime: number) => {
-      const deltaTime = (currentTime - lastTimeRef.current) / 1000;
       lastTimeRef.current = currentTime;
 
       const currentState = useGameStore.getState();

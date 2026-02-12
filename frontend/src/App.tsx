@@ -4,7 +4,6 @@ import { BuildingPanel } from './components/game/BuildingPanel';
 import { CreaturePanel } from './components/game/CreaturePanel';
 import { EvolutionPanel } from './components/game/EvolutionPanel';
 import { SpeedControls } from './components/game/SpeedControls';
-import { DebugPanel } from './components/game/DebugPanel';
 import { GameCanvasContainer } from './components/game/GameCanvasContainer';
 import { ToastContainer } from './components/ui';
 import { useGameStore } from './stores/gameStore';
@@ -14,13 +13,6 @@ import './styles/globals.css';
 function App() {
   const [evolutionTarget, setEvolutionTarget] = useState<CreatureState | undefined>();
   const { creatures, toasts, actions } = useGameStore();
-
-  const handleEvolutionRequest = (creatureId: string) => {
-    const creature = creatures.find(c => c.id === creatureId);
-    if (creature) {
-      setEvolutionTarget(creature);
-    }
-  };
 
   const handleCloseEvolution = () => {
     setEvolutionTarget(undefined);

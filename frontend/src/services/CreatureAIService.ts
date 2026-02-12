@@ -50,12 +50,11 @@ export class CreatureAIService {
     const now = Date.now();
     
     return creatures.map(creature => {
-      const creatureData = getCreatureData(creature.type);
-      let newCreature = { ...creature };
+      const newCreature = { ...creature };
       
       // Work search with cooldown
       if (creature.status === 'idle' && creature.energy > 50) {
-        const lastWorkSearch = (creature as any).lastWorkSearch || 0;
+        const lastWorkSearch = creature.lastWorkSearch || 0;
         const workSearchCooldown = 2000; // 2 seconds between work searches
         
         if (now - lastWorkSearch >= workSearchCooldown) {
@@ -69,10 +68,10 @@ export class CreatureAIService {
             newCreature.targetX = nearestBuilding.x;
             newCreature.targetY = nearestBuilding.y;
             newCreature.targetBuilding = nearestBuilding.id;
-            (newCreature as any).lastWorkSearch = now;
+            newCreature.lastWorkSearch = now;
           } else {
             console.log(`❌ ${new Date().toLocaleTimeString()} No work found for creature ${creature.id}`);
-            (newCreature as any).lastWorkSearch = now;
+            newCreature.lastWorkSearch = now;
           }
         }
       }
@@ -156,7 +155,7 @@ export class CreatureAIService {
    * Handle creatures working at buildings
    */
   static updateCreatureWork(creatures: CreatureState[], buildings: BuildingState[]): { creatures: CreatureState[], buildings: BuildingState[] } {
-    let updatedBuildings = [...buildings];
+    const updatedBuildings = [...buildings];
     
     const updatedCreatures = creatures.map(creature => {
       if (creature.status !== 'working' || !creature.targetBuilding) {

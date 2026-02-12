@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import type { Position, BuildingState, CreatureState, BuildingType, CreatureType } from '../../types/game';
+import type { Position, BuildingState, CreatureState } from '../../types/game';
 import { getBuildingData, getCreatureData, GAME_DATA } from '../../data/gameData';
 
 interface GameCanvasProps {

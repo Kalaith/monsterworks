@@ -548,8 +548,8 @@ export function hasSpecialty(creatureType: CreatureType, specialty: string): boo
  */
 export function getProducerBuildings(): BuildingType[] {
   return Object.entries(BUILDINGS)
-    .filter(([_, data]) => data.produces)
-    .map(([type, _]) => type as BuildingType);
+    .filter(([, data]) => data.produces)
+    .map(([type]) => type as BuildingType);
 }
 
 /**
@@ -557,8 +557,8 @@ export function getProducerBuildings(): BuildingType[] {
  */
 export function getProcessingBuildings(): BuildingType[] {
   return Object.entries(BUILDINGS)
-    .filter(([_, data]) => data.input && data.output)
-    .map(([type, _]) => type as BuildingType);
+    .filter(([, data]) => data.input && data.output)
+    .map(([type]) => type as BuildingType);
 }
 
 /**
@@ -566,11 +566,11 @@ export function getProcessingBuildings(): BuildingType[] {
  */
 export function getCarriersForResource(resourceType: ResourceType): CreatureType[] {
   return Object.entries(CREATURES)
-    .filter(([_, data]) => 
+    .filter(([, data]) => 
       data.specialties.includes('any') || 
       data.specialties.includes(resourceType as CreatureSpecialty)
     )
-    .map(([type, _]) => type as CreatureType);
+    .map(([type]) => type as CreatureType);
 }
 
 // ===== VALIDATION FUNCTIONS =====

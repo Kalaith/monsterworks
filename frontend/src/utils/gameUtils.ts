@@ -10,8 +10,7 @@ import type {
   CreatureType, 
   Position, 
   ResourceType,
-  GameActions,
-  GameState
+  GameActions
 } from '../types/game';
 import { getBuildingData, getCreatureData, GAME_DATA, GAME_CONFIG } from '../data/gameData';
 
@@ -170,7 +169,7 @@ export class Building {
 
   getStorageInfo(): Array<{ resource: ResourceType; amount: number; emoji: string }> {
     return Object.entries(this.storage)
-      .filter(([_, amount]) => amount > 0)
+      .filter(([, amount]) => amount > 0)
       .map(([resource, amount]) => ({
         resource: resource as ResourceType,
         amount,
@@ -278,7 +277,7 @@ export class Creature {
 
     // Find work if idle and not tired
     if (this.status === 'idle' && this.workCooldown <= 0 && this.energy > 50) {
-      this.findWork(buildings, gameActions);
+      this.findWork(buildings);
     }
 
     // Handle work at target location
@@ -312,10 +311,10 @@ export class Creature {
     return Math.sqrt(dx * dx + dy * dy) < 8;
   }
 
-  private findWork(buildings: Building[], gameActions: GameActions): void {
+  private findWork(buildings: Building[]): void {
     if (this.carriedAmount === 0) {
       // Find resources to pick up
-      const source = this.findResourceSource(buildings, gameActions);
+      const source = this.findResourceSource(buildings);
       if (source) {
         this.setTarget(source);
         this.task = 'pickup';
@@ -332,9 +331,7 @@ export class Creature {
     }
   }
 
-  private findResourceSource(buildings: Building[], gameActions: GameActions): Building | null {
-    const creatureData = getCreatureData(this.type);
-    
+  private findResourceSource(buildings: Building[]): Building | null {
     // Look for production buildings with resources to pickup
     const producers = buildings.filter(building => {
       const buildingData = getBuildingData(building.type);
@@ -456,7 +453,7 @@ export class Creature {
 
   private handleWork(building: Building, gameActions: GameActions): void {
     if (this.task === 'pickup') {
-      this.handlePickup(building, gameActions);
+      this.handlePickup(building);
     } else if (this.task === 'deliver') {
       this.handleDelivery(building, gameActions);
     } else if (this.task === 'rest') {
@@ -466,7 +463,7 @@ export class Creature {
     }
   }
 
-  private handlePickup(building: Building, gameActions: GameActions): void {
+  private handlePickup(building: Building): void {
     const buildingData = getBuildingData(building.type);
     let pickedUp = false;
 

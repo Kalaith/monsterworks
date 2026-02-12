@@ -5,13 +5,17 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', '*.config.ts', 'vitest.config.ts', 'vite.config.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       'react-hooks': reactHooks,
@@ -23,13 +27,52 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // TypeScript specific rules
+      // Naming conventions per WebHatchery standards
+      '@typescript-eslint/naming-convention': [
+        'error',
+        // Variables and functions: camelCase
+        {
+          selector: 'variableLike',
+          format: ['camelCase', 'PascalCase'], // Allow PascalCase for React components
+        },
+        // Parameters: allow underscore prefix for unused params
+        {
+          selector: 'parameter',
+          format: ['camelCase', 'PascalCase'],
+          leadingUnderscore: 'allow',
+        },
+        {
+          selector: 'function',
+          format: ['camelCase', 'PascalCase'], // Allow PascalCase for React components
+        },
+        // Types, interfaces, classes: PascalCase
+        {
+          selector: 'typeLike',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'class',
+          format: ['PascalCase'],
+        },
+        // Enum values: PascalCase
+        {
+          selector: 'enumMember',
+          format: ['PascalCase'],
+        },
+      ],
+      // Allow explicit any in some cases but warn
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'warn',
-      '@typescript-eslint/no-empty-interface': 'error',
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
-      '@typescript-eslint/prefer-optional-chain': 'warn',
+      // No unused variables
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
+  },
+  // Separate config for config files
+  {
+    files: ['*.config.{ts,js}', 'vitest.config.ts', 'vite.config.ts'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.node,
+    },
+    rules: {},
   },
 )

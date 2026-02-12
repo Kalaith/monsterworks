@@ -28,22 +28,12 @@ export function Card({
   const combinedClassName = cn(baseClasses, variantClasses[variant], className);
 
   if (variant === 'interactive') {
-    // Extract the motion-conflicting props
-    const { 
-      onAnimationStart, 
-      onAnimationEnd, 
-      onDrag, 
-      onDragEnd, 
-      onDragStart, 
-      ...safeProps 
-    } = props;
-
     return (
       <motion.div
         className={combinedClassName}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        {...safeProps}
+        {...props}
       >
         {children}
       </motion.div>

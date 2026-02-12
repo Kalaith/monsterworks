@@ -2,13 +2,8 @@
  * Core game simulation logic - handles production, AI, and game state updates
  */
 
-import type { BuildingState, CreatureState, InventoryState, ResourceType, InventoryType } from '../types/game';
-import { getBuildingData, getCreatureData, getResourceInventoryCategory } from '../data/gameData';
-
-// Utility function - moved from store
-function calculateDistance(pos1: { x: number, y: number }, pos2: { x: number, y: number }): number {
-  return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
-}
+import type { BuildingState, CreatureState, InventoryState, InventoryType } from '../types/game';
+import { getBuildingData, getResourceInventoryCategory } from '../data/gameData';
 
 export class GameSimulationService {
   /**
@@ -37,7 +32,7 @@ export class GameSimulationService {
     buildings: BuildingState[], 
     inventory: InventoryState
   ): { buildings: BuildingState[], inventory: InventoryState } {
-    let updatedInventory = { ...inventory };
+    const updatedInventory = { ...inventory };
     
     const updatedBuildings = buildings.map(building => {
       const buildingData = getBuildingData(building.type);
