@@ -1,4 +1,3 @@
-
 /**
  * Card component following the design system
  */
@@ -7,11 +6,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../../utils/cn';
 
-interface CardProps
-  extends Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    'onAnimationStart' | 'onAnimationEnd'
-  > {
+interface CardProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'onAnimationStart' | 'onAnimationEnd'
+> {
   variant?: 'default' | 'elevated' | 'interactive';
   children: React.ReactNode;
 }
