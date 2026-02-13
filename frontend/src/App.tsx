@@ -28,7 +28,7 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-text">
       <GameHeader onEvolutionTest={handleEvolutionTest} />
-      
+
       <main className="flex flex-col lg:flex-row p-4 gap-4">
         {/* Controls Sidebar */}
         <aside className="w-full lg:w-80 flex flex-col gap-4">
@@ -36,34 +36,29 @@ function App() {
           <CreaturePanel />
           <SpeedControls />
         </aside>
-        
+
         {/* Game Canvas Area */}
         <div className="flex-1 min-h-[700px]">
           <GameCanvasContainer />
         </div>
       </main>
-      
+
       {/* Evolution Panel Modal */}
       {evolutionTarget && (
-        <EvolutionPanel 
-          selectedCreature={evolutionTarget}
-          onClose={handleCloseEvolution}
-        />
+        <EvolutionPanel selectedCreature={evolutionTarget} onClose={handleCloseEvolution} />
       )}
-      
+
       {/* Instructions */}
       <footer className="p-4 bg-surface border-t border-card-border">
         <p className="text-center text-sm text-text-muted">
-          <strong>Instructions:</strong> Right-click to place monster buildings • Left-click to select • Double-click creatures to evolve them!
+          <strong>Instructions:</strong> Right-click to place monster buildings • Left-click to
+          select • Double-click creatures to evolve them!
         </p>
       </footer>
-      
+
       {/* Toast Notifications */}
-      <ToastContainer 
-        toasts={toasts}
-        onClose={actions.hideToast}
-      />
-      
+      <ToastContainer toasts={toasts} onClose={actions.hideToast} />
+
       {/* Debug Panel (temporary) - DISABLED to fix re-render issue */}
       {/* <DebugPanel /> */}
     </div>

@@ -9,14 +9,15 @@ export const GameCanvasContainer: React.FC = () => {
   const buildings = useGameStore(state => state.buildings);
   const creatures = useGameStore(state => state.creatures);
   const selectedObject = useGameStore(state => state.selectedObject);
-  
+
   // Start the game loop here instead of in the canvas
   useGameLoop();
 
   const handleCanvasClick = (position: Position) => {
     console.log('🖱️ Canvas clicked at:', position);
-    const { buildings, creatures, selectedBuildingType, selectedCreatureType, actions } = useGameStore.getState();
-    
+    const { buildings, creatures, selectedBuildingType, selectedCreatureType, actions } =
+      useGameStore.getState();
+
     // If we have a building selected, place it
     if (selectedBuildingType) {
       console.log('🏗️ Placing building:', selectedBuildingType);
@@ -30,13 +31,15 @@ export const GameCanvasContainer: React.FC = () => {
       actions.spawnCreature(selectedCreatureType, position);
       return;
     }
-    
+
     // Check if clicking on a building
     const clickedBuilding = buildings.find(building => {
       const distance = Math.sqrt(
         Math.pow(position.x - building.x, 2) + Math.pow(position.y - building.y, 2)
       );
-      console.log(`Building ${building.id} at (${building.x}, ${building.y}), distance: ${distance}`);
+      console.log(
+        `Building ${building.id} at (${building.x}, ${building.y}), distance: ${distance}`
+      );
       return distance <= 20;
     });
 

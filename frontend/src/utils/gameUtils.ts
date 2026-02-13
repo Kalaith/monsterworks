@@ -3,14 +3,14 @@
  * Converted from original JavaScript with TypeScript typing
  */
 
-import type { 
-  BuildingState, 
-  CreatureState, 
-  BuildingType, 
-  CreatureType, 
-  Position, 
+import type {
+  BuildingState,
+  CreatureState,
+  BuildingType,
+  CreatureType,
+  Position,
   ResourceType,
-  GameActions
+  GameActions,
 } from '../types/game';
 import { getBuildingData, getCreatureData, gameData, gameConfig } from '../data/gameData';
 
@@ -27,50 +27,63 @@ export function calculateDistance(pos1: Position, pos2: Position): number {
 export function snapToGrid(x: number, y: number, gridSize: number = 50): Position {
   return {
     x: Math.round(x / gridSize) * gridSize + gridSize / 2,
-    y: Math.round(y / gridSize) * gridSize + gridSize / 2
+    y: Math.round(y / gridSize) * gridSize + gridSize / 2,
   };
 }
 
-export function pixelToGrid(x: number, y: number, gridSize: number = 50): { gridX: number; gridY: number } {
+export function pixelToGrid(
+  x: number,
+  y: number,
+  gridSize: number = 50
+): { gridX: number; gridY: number } {
   return {
     gridX: Math.round(x / gridSize),
-    gridY: Math.round(y / gridSize)
+    gridY: Math.round(y / gridSize),
   };
 }
 
 export function gridToPixel(gridX: number, gridY: number, gridSize: number = 50): Position {
   return {
     x: gridX * gridSize,
-    y: gridY * gridSize
+    y: gridY * gridSize,
   };
 }
 
-export function isValidPosition(x: number, y: number, canvasWidth = 1000, canvasHeight = 700): boolean {
+export function isValidPosition(
+  x: number,
+  y: number,
+  canvasWidth = 1000,
+  canvasHeight = 700
+): boolean {
   const gridSize = gameConfig.grid?.size || 50;
-  return x >= gridSize/2 && x <= canvasWidth - gridSize/2 && 
-         y >= gridSize/2 && y <= canvasHeight - gridSize/2;
+  return (
+    x >= gridSize / 2 &&
+    x <= canvasWidth - gridSize / 2 &&
+    y >= gridSize / 2 &&
+    y <= canvasHeight - gridSize / 2
+  );
 }
 
 export function isValidGridPosition(
-  gridX: number, 
-  gridY: number, 
-  canvasWidth = 1000, 
+  gridX: number,
+  gridY: number,
+  canvasWidth = 1000,
   canvasHeight = 700,
   gridSize = 50
 ): boolean {
   const maxGridX = Math.floor(canvasWidth / gridSize);
   const maxGridY = Math.floor(canvasHeight / gridSize);
-  
+
   return gridX >= 0 && gridX < maxGridX && gridY >= 0 && gridY < maxGridY;
 }
 
 export function isPositionOccupied(
-  position: Position, 
-  buildings: BuildingState[], 
+  position: Position,
+  buildings: BuildingState[],
   radius: number = 40
 ): boolean {
-  return buildings.some(building => 
-    calculateDistance(position, { x: building.x, y: building.y }) < radius
+  return buildings.some(
+    building => calculateDistance(position, { x: building.x, y: building.y }) < radius
   );
 }
 
@@ -118,7 +131,7 @@ export class Building {
     // Handle resource production
     if (buildingData.produces && buildingData.rate && this.lastProduction >= 1) {
       const amount = buildingData.rate * Math.floor(this.lastProduction);
-      
+
       if (buildingData.storage) {
         // Store in building
         this.storage[buildingData.produces] = Math.min(
@@ -129,7 +142,7 @@ export class Building {
         // Add directly to game resources
         gameActions.addResource(buildingData.produces, amount);
       }
-      
+
       this.lastProduction = this.lastProduction % 1;
       this.isWorking = true;
     }
@@ -155,10 +168,10 @@ export class Building {
   storeResource(resourceType: ResourceType, amount: number): number {
     const buildingData = getBuildingData(this.type);
     if (!buildingData.storage) return 0;
-    
+
     const totalStored = Object.values(this.storage).reduce((sum, val) => sum + val, 0);
     const canStore = Math.min(amount, this.maxStorage - totalStored);
-    
+
     this.storage[resourceType] = (this.storage[resourceType] || 0) + canStore;
     return canStore;
   }
@@ -173,7 +186,7 @@ export class Building {
       .map(([resource, amount]) => ({
         resource: resource as ResourceType,
         amount,
-        emoji: gameData.resources[resource as ResourceType]?.emoji || '?'
+        emoji: gameData.resources[resource as ResourceType]?.emoji || '?',
       }));
   }
 
@@ -203,7 +216,7 @@ export class Building {
       storage: this.storage,
       maxStorage: this.maxStorage,
       isWorking: this.isWorking,
-      workers: this.workers
+      workers: this.workers,
     };
   }
 }
@@ -242,9 +255,9 @@ export class Creature {
 
   update(deltaTime: number, buildings: Building[], gameActions: GameActions): void {
     const creatureData = getCreatureData(this.type);
-    
+
     this.workCooldown = Math.max(0, this.workCooldown - deltaTime);
-    
+
     // Update energy
     if (this.status === 'resting') {
       this.energy = Math.min(
@@ -252,7 +265,7 @@ export class Creature {
         this.energy + (gameConfig.timing.restRate * deltaTime) / 1000
       );
       this.restTime += deltaTime;
-      
+
       // Stop resting when fully rested or after minimum rest time
       if (this.energy >= this.maxEnergy * 0.9 || this.restTime >= 3) {
         this.status = 'idle';
@@ -305,7 +318,7 @@ export class Creature {
 
   private isAtTarget(): boolean {
     if (this.targetX === undefined || this.targetY === undefined) return false;
-    
+
     const dx = this.targetX - this.x;
     const dy = this.targetY - this.y;
     return Math.sqrt(dx * dx + dy * dy) < 8;
@@ -336,19 +349,18 @@ export class Creature {
     const producers = buildings.filter(building => {
       const buildingData = getBuildingData(building.type);
       if (!buildingData.produces) return false;
-      
+
       const resourceType = buildingData.produces;
-      return this.canCarry(resourceType) && 
-             (building.hasResource(resourceType) || !buildingData.storage);
+      return (
+        this.canCarry(resourceType) && (building.hasResource(resourceType) || !buildingData.storage)
+      );
     });
 
     if (producers.length > 0) {
       // Find closest producer
       return producers.reduce((closest, building) => {
         const distance = calculateDistance(this, building);
-        return !closest || distance < calculateDistance(this, closest) 
-          ? building 
-          : closest;
+        return !closest || distance < calculateDistance(this, closest) ? building : closest;
       });
     }
 
@@ -356,18 +368,16 @@ export class Creature {
     const storageBuildings = buildings.filter(building => {
       const buildingData = getBuildingData(building.type);
       if (!buildingData.storage) return false;
-      
-      return Object.keys(building.storage).some(resource => 
-        building.storage[resource] > 0 && this.canCarry(resource as ResourceType)
+
+      return Object.keys(building.storage).some(
+        resource => building.storage[resource] > 0 && this.canCarry(resource as ResourceType)
       );
     });
 
     if (storageBuildings.length > 0) {
       return storageBuildings.reduce((closest, building) => {
         const distance = calculateDistance(this, building);
-        return !closest || distance < calculateDistance(this, closest) 
-          ? building 
-          : closest;
+        return !closest || distance < calculateDistance(this, closest) ? building : closest;
       });
     }
 
@@ -384,9 +394,7 @@ export class Creature {
     if (warehouses.length > 0) {
       return warehouses.reduce((closest, building) => {
         const distance = calculateDistance(this, building);
-        return !closest || distance < calculateDistance(this, closest) 
-          ? building 
-          : closest;
+        return !closest || distance < calculateDistance(this, closest) ? building : closest;
       });
     }
 
@@ -395,15 +403,13 @@ export class Creature {
 
   private findRestLocation(buildings: Building[]): void {
     const homes = buildings.filter(building => building.type === 'corpse_pile');
-    
+
     if (homes.length > 0) {
       const nearestHome = homes.reduce((closest, building) => {
         const distance = calculateDistance(this, building);
-        return !closest || distance < calculateDistance(this, closest) 
-          ? building 
-          : closest;
+        return !closest || distance < calculateDistance(this, closest) ? building : closest;
       });
-      
+
       this.setTarget(nearestHome);
       this.status = 'traveling';
       this.task = 'rest';
@@ -416,12 +422,12 @@ export class Creature {
 
   private canCarry(resourceType: ResourceType): boolean {
     const creatureData = getCreatureData(this.type);
-    
+
     if (this.carriedAmount >= creatureData.capacity) return false;
-    
+
     const specialties = creatureData.specialties;
     if (specialties.includes('any') || specialties.includes('general')) return true;
-    
+
     // Resource category mapping
     const resourceCategories: Record<ResourceType, string[]> = {
       flesh: ['liquid', 'general'],
@@ -437,9 +443,9 @@ export class Creature {
       stolen_knowledge: ['light', 'magical'],
       mutagen: ['magical', 'delicate'],
       evolution_essence: ['magical', 'fragile'],
-      loyalty: ['general', 'any']
+      loyalty: ['general', 'any'],
     };
-    
+
     const categories = resourceCategories[resourceType] || [];
     return specialties.some(spec => categories.includes(spec));
   }
@@ -480,7 +486,11 @@ export class Creature {
     } else if (buildingData.storage) {
       // Pick up from storage building
       for (const [resource, amount] of Object.entries(building.storage)) {
-        if (amount > 0 && this.canCarry(resource as ResourceType) && this.carriedAmount < getCreatureData(this.type).capacity) {
+        if (
+          amount > 0 &&
+          this.canCarry(resource as ResourceType) &&
+          this.carriedAmount < getCreatureData(this.type).capacity
+        ) {
           const taken = building.takeResource(resource as ResourceType, 1);
           if (taken > 0) {
             this.carriedResource = resource as ResourceType;
@@ -507,10 +517,10 @@ export class Creature {
 
   private handleDelivery(building: Building, gameActions: GameActions): void {
     const buildingData = getBuildingData(building.type);
-    
+
     if (buildingData.storage && this.carriedAmount > 0 && this.carriedResource) {
       const stored = building.storeResource(this.carriedResource, this.carriedAmount);
-      
+
       if (stored > 0) {
         this.carriedAmount -= stored;
         if (this.carriedAmount <= 0) {
@@ -534,11 +544,16 @@ export class Creature {
 
   getStatusColor(): string {
     switch (this.status) {
-      case 'idle': return '#666';
-      case 'working': return '#32a852';
-      case 'traveling': return '#f39c12';
-      case 'resting': return '#9b59b6';
-      default: return '#000';
+      case 'idle':
+        return '#666';
+      case 'working':
+        return '#32a852';
+      case 'traveling':
+        return '#f39c12';
+      case 'resting':
+        return '#9b59b6';
+      default:
+        return '#000';
     }
   }
 
@@ -551,7 +566,7 @@ export class Creature {
       status: this.status,
       carriedAmount: this.carriedAmount,
       energy: this.energy,
-      maxEnergy: this.maxEnergy
+      maxEnergy: this.maxEnergy,
     };
   }
 }

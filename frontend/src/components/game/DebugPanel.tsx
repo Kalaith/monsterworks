@@ -20,7 +20,7 @@ export function DebugPanel() {
     console.log('Current inventory state:', inventory);
     console.log('Total flesh:', actions.getTotalResource('flesh'));
     console.log('Total bone:', actions.getTotalResource('bone'));
-    
+
     // Test affordability
     const boneKilnCost = BUILDINGS.bone_kiln.cost;
     console.log('Bone kiln cost:', boneKilnCost);
@@ -31,18 +31,10 @@ export function DebugPanel() {
     <div className="fixed bottom-4 left-4 bg-surface border border-card-border rounded p-4 space-y-2">
       <h4 className="font-semibold text-sm">Debug Panel</h4>
       <div className="space-y-1">
-        <Button
-          size="sm"
-          onClick={logInventoryState}
-          className="w-full text-xs"
-        >
+        <Button size="sm" onClick={logInventoryState} className="w-full text-xs">
           Log Inventory
         </Button>
-        <Button
-          size="sm"
-          onClick={testBuildingPlacement}
-          className="w-full text-xs"
-        >
+        <Button size="sm" onClick={testBuildingPlacement} className="w-full text-xs">
           Test Building
         </Button>
       </div>

@@ -19,7 +19,7 @@ interface StreamlinedResourceItemProps {
 
 function StreamlinedResourceItem({ type, totalAmount, index }: StreamlinedResourceItemProps) {
   const resourceData = RESOURCES[type];
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
@@ -32,14 +32,10 @@ function StreamlinedResourceItem({ type, totalAmount, index }: StreamlinedResour
         'min-w-[80px]'
       )}
     >
-      <span 
-        className="text-base" 
-        role="img" 
-        aria-label={resourceData.name}
-      >
+      <span className="text-base" role="img" aria-label={resourceData.name}>
         {resourceData.emoji}
       </span>
-      <span 
+      <span
         className="font-semibold text-text min-w-[2rem] text-right text-sm"
         style={{ color: totalAmount > 0 ? resourceData.color : '#666' }}
       >
@@ -55,11 +51,11 @@ interface InventoryDetailModalProps {
 }
 
 function InventoryDetailModal({ isOpen, onClose }: InventoryDetailModalProps) {
-  const inventory = useGameStore((state) => state.inventory);
-  const actions = useGameStore((state) => state.actions);
-  
+  const inventory = useGameStore(state => state.inventory);
+  const actions = useGameStore(state => state.actions);
+
   if (!isOpen) return null;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -74,7 +70,7 @@ function InventoryDetailModal({ isOpen, onClose }: InventoryDetailModalProps) {
         exit={{ scale: 0.8, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className="bg-surface border border-card-border rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-text">Detailed Inventory</h2>
@@ -87,7 +83,7 @@ function InventoryDetailModal({ isOpen, onClose }: InventoryDetailModalProps) {
             ✕
           </Button>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {Object.entries(inventoryCategories).map(([categoryKey, category]) => (
             <div key={categoryKey} className="space-y-3">
@@ -95,15 +91,15 @@ function InventoryDetailModal({ isOpen, onClose }: InventoryDetailModalProps) {
                 <h3 className="font-semibold text-text text-lg">{category.name}</h3>
                 <p className="text-sm text-text-secondary">{category.description}</p>
               </div>
-              
+
               <div className="space-y-2">
-                {category.resources.map((resourceType) => {
+                {category.resources.map(resourceType => {
                   const resourceData = RESOURCES[resourceType];
                   const amount = inventory[category.type as InventoryType][resourceType];
                   const totalAmount = actions.getTotalResource(resourceType);
-                  
+
                   return (
-                    <div 
+                    <div
                       key={resourceType}
                       className="flex items-center justify-between p-2 bg-surface-variant rounded border border-card-border/30"
                     >
@@ -112,16 +108,14 @@ function InventoryDetailModal({ isOpen, onClose }: InventoryDetailModalProps) {
                         <span className="text-sm font-medium text-text">{resourceData.name}</span>
                       </div>
                       <div className="text-right">
-                        <div 
+                        <div
                           className="font-semibold text-sm"
                           style={{ color: amount > 0 ? resourceData.color : '#666' }}
                         >
                           {amount}
                         </div>
                         {totalAmount !== amount && (
-                          <div className="text-xs text-text-secondary">
-                            ({totalAmount} total)
-                          </div>
+                          <div className="text-xs text-text-secondary">({totalAmount} total)</div>
                         )}
                       </div>
                     </div>
@@ -131,11 +125,12 @@ function InventoryDetailModal({ isOpen, onClose }: InventoryDetailModalProps) {
             </div>
           ))}
         </div>
-        
+
         <div className="mt-6 pt-4 border-t border-card-border">
           <p className="text-sm text-text-secondary">
-            💡 Tip: Resources are automatically used from the most appropriate inventory. 
-            Construction materials are used for buildings, base resources for creatures and production.
+            💡 Tip: Resources are automatically used from the most appropriate inventory.
+            Construction materials are used for buildings, base resources for creatures and
+            production.
           </p>
         </div>
       </motion.div>
@@ -149,8 +144,8 @@ interface StreamlinedResourceDisplayProps {
 
 export function StreamlinedResourceDisplay({ className }: StreamlinedResourceDisplayProps) {
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const actions = useGameStore((state) => state.actions);
-  
+  const actions = useGameStore(state => state.actions);
+
   const streamlinedResources = getStreamlinedResources();
 
   return (
@@ -161,7 +156,7 @@ export function StreamlinedResourceDisplay({ className }: StreamlinedResourceDis
           {streamlinedResources.map((type, index) => {
             const totalAmount = actions.getTotalResource(type);
             return (
-              <StreamlinedResourceItem 
+              <StreamlinedResourceItem
                 key={type}
                 type={type}
                 totalAmount={totalAmount}
@@ -170,7 +165,7 @@ export function StreamlinedResourceDisplay({ className }: StreamlinedResourceDis
             );
           })}
         </div>
-        
+
         {/* More Button */}
         <Button
           variant="outline"
@@ -186,11 +181,11 @@ export function StreamlinedResourceDisplay({ className }: StreamlinedResourceDis
           ⋯ More
         </Button>
       </div>
-      
+
       {/* Detailed Inventory Modal */}
       <AnimatePresence>
         {showDetailModal && (
-          <InventoryDetailModal 
+          <InventoryDetailModal
             isOpen={showDetailModal}
             onClose={() => setShowDetailModal(false)}
           />

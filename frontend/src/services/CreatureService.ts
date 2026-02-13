@@ -17,10 +17,13 @@ export class CreatureService {
     isCreatureUnlocked: (type: CreatureType) => boolean
   ): { canSpawn: boolean; reason?: string } {
     const creatureData = getCreatureData(type);
-    
+
     // Check creature limit
     if (existingCreatures.length >= gameConfig.limits.maxCreatures) {
-      return { canSpawn: false, reason: `Maximum creature limit reached (${gameConfig.limits.maxCreatures})!` };
+      return {
+        canSpawn: false,
+        reason: `Maximum creature limit reached (${gameConfig.limits.maxCreatures})!`,
+      };
     }
 
     // Check if creature type is unlocked
@@ -47,7 +50,7 @@ export class CreatureService {
    */
   static createCreature(type: CreatureType, position: Position): CreatureState {
     const snappedPos = snapToGrid(position.x, position.y);
-    
+
     return {
       id: Math.random().toString(36).substr(2, 9),
       type,
@@ -56,7 +59,7 @@ export class CreatureService {
       status: 'idle',
       carriedAmount: 0,
       energy: 100,
-      maxEnergy: 100
+      maxEnergy: 100,
     };
   }
 }

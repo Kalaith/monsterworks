@@ -7,7 +7,7 @@ type ClassValue = string | undefined | null | false | ClassValue[];
 
 export function cn(...classes: ClassValue[]): string {
   const result: string[] = [];
-  
+
   const flatten = (value: ClassValue): void => {
     if (Array.isArray(value)) {
       value.forEach(flatten);

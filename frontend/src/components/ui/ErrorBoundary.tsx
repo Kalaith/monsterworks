@@ -15,10 +15,7 @@ interface ErrorBoundaryProps {
   fallback?: ReactNode;
 }
 
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -30,7 +27,7 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Component error caught by ErrorBoundary:', error, errorInfo);
-    
+
     // In production, you might want to log this to an error reporting service
     // Example: logErrorToService(error, errorInfo);
   }
@@ -47,15 +44,13 @@ export class ErrorBoundary extends React.Component<
             <span className="text-2xl" role="img" aria-label="Error">
               ⚠️
             </span>
-            <h2 className="text-lg font-semibold text-error">
-              Something went wrong
-            </h2>
+            <h2 className="text-lg font-semibold text-error">Something went wrong</h2>
           </div>
-          
+
           <p className="text-text-muted mb-4">
             An unexpected error occurred while rendering this component.
           </p>
-          
+
           {this.state.error && (
             <details className="mb-4">
               <summary className="cursor-pointer text-sm text-text-muted">
@@ -68,7 +63,7 @@ export class ErrorBoundary extends React.Component<
               </pre>
             </details>
           )}
-          
+
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover transition-colors"

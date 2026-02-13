@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -14,7 +11,7 @@ export default {
         'text-muted': 'var(--color-text-muted)',
         border: 'var(--color-border)',
         'card-border': 'var(--color-card-border)',
-        
+
         primary: {
           DEFAULT: 'var(--color-primary)',
           hover: 'var(--color-primary-hover)',
@@ -25,12 +22,12 @@ export default {
           hover: 'var(--color-secondary-hover)',
           active: 'var(--color-secondary-active)',
         },
-        
+
         success: 'var(--color-success)',
         error: 'var(--color-error)',
         warning: 'var(--color-warning)',
         info: 'var(--color-info)',
-        
+
         // Colorful backgrounds
         'bg-1': 'var(--color-bg-1)',
         'bg-2': 'var(--color-bg-2)',
@@ -107,4 +104,4 @@ export default {
     },
   },
   plugins: [],
-}
+};

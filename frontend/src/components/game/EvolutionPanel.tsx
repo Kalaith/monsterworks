@@ -17,12 +17,9 @@ interface EvolutionPanelProps {
 }
 
 export function EvolutionPanel({ selectedCreature, onClose }: EvolutionPanelProps) {
-  const { 
-    canEvolveCreature, 
-    evolveCreature, 
-    isCreatureUnlocked,
-    canAfford 
-  } = useGameStore(state => state.actions);
+  const { canEvolveCreature, evolveCreature, isCreatureUnlocked, canAfford } = useGameStore(
+    state => state.actions
+  );
 
   if (!selectedCreature) return null;
 
@@ -75,7 +72,7 @@ export function EvolutionPanel({ selectedCreature, onClose }: EvolutionPanelProp
                   <p className="text-slate-400 text-sm">Tier {creatureData.tier || 1} creature</p>
                 </div>
               </div>
-              
+
               <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
                 <div className="text-slate-300">
                   <span className="text-slate-500">Speed:</span> {creatureData.speed}
@@ -97,7 +94,9 @@ export function EvolutionPanel({ selectedCreature, onClose }: EvolutionPanelProp
                 {evolutionPaths.map(targetType => {
                   const targetData = getCreatureData(targetType);
                   const canEvolve = canEvolveCreature(selectedCreature.id, targetType);
-                  const canAffordCost = targetData.evolutionCost ? canAfford(targetData.evolutionCost) : true;
+                  const canAffordCost = targetData.evolutionCost
+                    ? canAfford(targetData.evolutionCost)
+                    : true;
                   const isUnlocked = isCreatureUnlocked(targetType);
 
                   return (
@@ -105,8 +104,8 @@ export function EvolutionPanel({ selectedCreature, onClose }: EvolutionPanelProp
                       key={targetType}
                       whileHover={{ scale: 1.02 }}
                       className={`p-4 rounded-lg border ${
-                        canEvolve 
-                          ? 'bg-green-900/20 border-green-500/30 hover:bg-green-900/30' 
+                        canEvolve
+                          ? 'bg-green-900/20 border-green-500/30 hover:bg-green-900/30'
                           : 'bg-slate-800/30 border-slate-600/30'
                       }`}
                     >
@@ -115,21 +114,27 @@ export function EvolutionPanel({ selectedCreature, onClose }: EvolutionPanelProp
                           <span className="text-2xl">{targetData.emoji}</span>
                           <div>
                             <h4 className="font-semibold text-white">{targetData.name}</h4>
-                            <p className="text-slate-400 text-sm">Tier {targetData.tier || 1} creature</p>
-                            
+                            <p className="text-slate-400 text-sm">
+                              Tier {targetData.tier || 1} creature
+                            </p>
+
                             {/* Evolution requirements */}
                             {targetData.evolutionCost && (
                               <div className="mt-2 flex flex-wrap gap-2">
-                                {Object.entries(targetData.evolutionCost).map(([resource, amount]) => (
-                                  <span
-                                    key={resource}
-                                    className={`px-2 py-1 rounded text-xs ${
-                                      canAffordCost ? 'bg-green-900/30 text-green-300' : 'bg-red-900/30 text-red-300'
-                                    }`}
-                                  >
-                                    {amount} {resource}
-                                  </span>
-                                ))}
+                                {Object.entries(targetData.evolutionCost).map(
+                                  ([resource, amount]) => (
+                                    <span
+                                      key={resource}
+                                      className={`px-2 py-1 rounded text-xs ${
+                                        canAffordCost
+                                          ? 'bg-green-900/30 text-green-300'
+                                          : 'bg-red-900/30 text-red-300'
+                                      }`}
+                                    >
+                                      {amount} {resource}
+                                    </span>
+                                  )
+                                )}
                               </div>
                             )}
                           </div>
@@ -156,30 +161,45 @@ export function EvolutionPanel({ selectedCreature, onClose }: EvolutionPanelProp
                       <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                         <div className="text-center">
                           <div className="text-slate-500">Speed</div>
-                          <div className={`font-semibold ${
-                            targetData.speed > creatureData.speed ? 'text-green-400' :
-                            targetData.speed < creatureData.speed ? 'text-red-400' : 'text-slate-300'
-                          }`}>
+                          <div
+                            className={`font-semibold ${
+                              targetData.speed > creatureData.speed
+                                ? 'text-green-400'
+                                : targetData.speed < creatureData.speed
+                                  ? 'text-red-400'
+                                  : 'text-slate-300'
+                            }`}
+                          >
                             {targetData.speed > creatureData.speed && '+'}
                             {targetData.speed - creatureData.speed || targetData.speed}
                           </div>
                         </div>
                         <div className="text-center">
                           <div className="text-slate-500">Capacity</div>
-                          <div className={`font-semibold ${
-                            targetData.capacity > creatureData.capacity ? 'text-green-400' :
-                            targetData.capacity < creatureData.capacity ? 'text-red-400' : 'text-slate-300'
-                          }`}>
+                          <div
+                            className={`font-semibold ${
+                              targetData.capacity > creatureData.capacity
+                                ? 'text-green-400'
+                                : targetData.capacity < creatureData.capacity
+                                  ? 'text-red-400'
+                                  : 'text-slate-300'
+                            }`}
+                          >
                             {targetData.capacity > creatureData.capacity && '+'}
                             {targetData.capacity - creatureData.capacity || targetData.capacity}
                           </div>
                         </div>
                         <div className="text-center">
                           <div className="text-slate-500">Tier</div>
-                          <div className={`font-semibold ${
-                            (targetData.tier || 1) > (creatureData.tier || 1) ? 'text-green-400' :
-                            (targetData.tier || 1) < (creatureData.tier || 1) ? 'text-red-400' : 'text-slate-300'
-                          }`}>
+                          <div
+                            className={`font-semibold ${
+                              (targetData.tier || 1) > (creatureData.tier || 1)
+                                ? 'text-green-400'
+                                : (targetData.tier || 1) < (creatureData.tier || 1)
+                                  ? 'text-red-400'
+                                  : 'text-slate-300'
+                            }`}
+                          >
                             {targetData.tier || 1}
                           </div>
                         </div>

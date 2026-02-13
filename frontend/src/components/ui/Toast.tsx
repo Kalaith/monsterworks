@@ -27,14 +27,14 @@ export function Toast({ id, message, type = 'info', duration = 4000, onClose }: 
     info: 'bg-blue-600 text-white',
     success: 'bg-green-600 text-white',
     warning: 'bg-orange-600 text-white',
-    error: 'bg-red-600 text-white'
+    error: 'bg-red-600 text-white',
   };
 
   const typeIcons = {
     info: 'ℹ️',
     success: '✅',
     warning: '⚠️',
-    error: '❌'
+    error: '❌',
   };
 
   return (
@@ -50,9 +50,7 @@ export function Toast({ id, message, type = 'info', duration = 4000, onClose }: 
         typeStyles[type]
       )}
     >
-      <span className="text-lg flex-shrink-0">
-        {typeIcons[type]}
-      </span>
+      <span className="text-lg flex-shrink-0">{typeIcons[type]}</span>
       <p className="text-sm font-medium flex-1">{message}</p>
       <button
         onClick={() => onClose(id)}
@@ -79,12 +77,8 @@ export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
       <AnimatePresence>
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            {...toast}
-            onClose={onClose}
-          />
+        {toasts.map(toast => (
+          <Toast key={toast.id} {...toast} onClose={onClose} />
         ))}
       </AnimatePresence>
     </div>

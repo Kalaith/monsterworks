@@ -19,7 +19,7 @@ interface CreatureItemProps {
 
 function CreatureItem({ type, isSelected, canAfford, onSelect }: CreatureItemProps) {
   const creatureData = CREATURES[type];
-  
+
   const costText = Object.entries(creatureData.cost)
     .map(([resource, amount]) => `${amount} ${resource}`)
     .join(', ');
@@ -44,33 +44,20 @@ function CreatureItem({ type, isSelected, canAfford, onSelect }: CreatureItemPro
       aria-pressed={isSelected}
       aria-disabled={!canAfford}
     >
-      <span 
-        className="text-2xl" 
-        role="img" 
-        aria-label={creatureData.name}
-      >
+      <span className="text-2xl" role="img" aria-label={creatureData.name}>
         {creatureData.emoji}
       </span>
-      
+
       <div className="flex flex-col gap-1">
-        <span className={cn(
-          'font-medium text-sm',
-          isSelected ? 'text-white' : 'text-text'
-        )}>
+        <span className={cn('font-medium text-sm', isSelected ? 'text-white' : 'text-text')}>
           {creatureData.name}
         </span>
-        
-        <span className={cn(
-          'text-xs',
-          isSelected ? 'text-white/80' : 'text-text-muted'
-        )}>
+
+        <span className={cn('text-xs', isSelected ? 'text-white/80' : 'text-text-muted')}>
           {statsText}
         </span>
-        
-        <span className={cn(
-          'text-xs',
-          isSelected ? 'text-white/70' : 'text-text-muted'
-        )}>
+
+        <span className={cn('text-xs', isSelected ? 'text-white/70' : 'text-text-muted')}>
           {costText}
         </span>
       </div>
@@ -83,8 +70,8 @@ interface CreaturePanelProps {
 }
 
 export function CreaturePanel({ className }: CreaturePanelProps) {
-  const selectedCreatureType = useGameStore((state) => state.selectedCreatureType);
-  const creatures = useGameStore((state) => state.creatures);
+  const selectedCreatureType = useGameStore(state => state.selectedCreatureType);
+  const creatures = useGameStore(state => state.creatures);
   const { selectCreatureType, canAfford } = useGameActions();
 
   const creatureTypes = Object.keys(CREATURES) as CreatureType[];
@@ -93,12 +80,14 @@ export function CreaturePanel({ className }: CreaturePanelProps) {
     <Card className={className}>
       <div className="p-4">
         <h3 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
-          <span role="img" aria-label="Creatures">🐾</span>
+          <span role="img" aria-label="Creatures">
+            🐾
+          </span>
           Creatures ({creatures.length}/50)
         </h3>
-        
+
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-          {creatureTypes.map((type) => (
+          {creatureTypes.map(type => (
             <CreatureItem
               key={type}
               type={type}
@@ -108,7 +97,7 @@ export function CreaturePanel({ className }: CreaturePanelProps) {
             />
           ))}
         </div>
-        
+
         {selectedCreatureType && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}

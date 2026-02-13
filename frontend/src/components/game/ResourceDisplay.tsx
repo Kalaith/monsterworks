@@ -17,7 +17,7 @@ interface ResourceItemProps {
 
 function ResourceItem({ type, amount, index }: ResourceItemProps) {
   const resourceData = RESOURCES[type];
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -29,14 +29,10 @@ function ResourceItem({ type, amount, index }: ResourceItemProps) {
         'transition-all duration-fast hover:shadow-sm'
       )}
     >
-      <span 
-        className="text-lg" 
-        role="img" 
-        aria-label={resourceData.name}
-      >
+      <span className="text-lg" role="img" aria-label={resourceData.name}>
         {resourceData.emoji}
       </span>
-      <span 
+      <span
         className="font-medium text-text min-w-[2rem] text-right"
         style={{ color: amount > 0 ? resourceData.color : undefined }}
       >
@@ -52,7 +48,7 @@ interface ResourceDisplayProps {
 }
 
 export function ResourceDisplay({ className }: ResourceDisplayProps) {
-  const actions = useGameStore((state) => state.actions);
+  const actions = useGameStore(state => state.actions);
 
   // Get all resource types and their total amounts
   const resourceEntries = Object.keys(RESOURCES).map(type => {
@@ -64,12 +60,7 @@ export function ResourceDisplay({ className }: ResourceDisplayProps) {
   return (
     <div className={cn('flex flex-wrap gap-2', className)}>
       {resourceEntries.map(([type, amount], index) => (
-        <ResourceItem 
-          key={type}
-          type={type}
-          amount={amount}
-          index={index}
-        />
+        <ResourceItem key={type} type={type} amount={amount} index={index} />
       ))}
     </div>
   );

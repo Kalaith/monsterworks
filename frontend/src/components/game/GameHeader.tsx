@@ -16,7 +16,7 @@ interface GameHeaderProps {
 
 export function GameHeader({ className, onEvolutionTest }: GameHeaderProps) {
   const { creatures } = useGameStore();
-  
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -33,10 +33,12 @@ export function GameHeader({ className, onEvolutionTest }: GameHeaderProps) {
         animate={{ opacity: 1, x: 0 }}
         className="text-2xl sm:text-3xl font-bold text-text flex items-center gap-2"
       >
-        <span role="img" aria-label="Monster">👹</span>
+        <span role="img" aria-label="Monster">
+          👹
+        </span>
         Monsterworks: Dark Industry
       </motion.h1>
-      
+
       <div className="flex items-center gap-4">
         {onEvolutionTest && creatures.length > 0 && (
           <Button

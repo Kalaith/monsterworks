@@ -19,7 +19,7 @@ interface BuildingItemProps {
 
 const BuildingItem = React.memo<BuildingItemProps>(({ type, isSelected, canAfford, onSelect }) => {
   const buildingData = BUILDINGS[type];
-  
+
   const costText = Object.entries(buildingData.cost)
     .map(([resource, amount]) => `${amount} ${resource}`)
     .join(', ');
@@ -45,26 +45,16 @@ const BuildingItem = React.memo<BuildingItemProps>(({ type, isSelected, canAffor
       aria-pressed={isSelected}
       aria-disabled={!canAfford}
     >
-      <span 
-        className="text-2xl" 
-        role="img" 
-        aria-label={buildingData.name}
-      >
+      <span className="text-2xl" role="img" aria-label={buildingData.name}>
         {buildingData.emoji}
       </span>
-      
+
       <div className="flex flex-col gap-1">
-        <span className={cn(
-          'font-medium text-sm',
-          isSelected ? 'text-white' : 'text-text'
-        )}>
+        <span className={cn('font-medium text-sm', isSelected ? 'text-white' : 'text-text')}>
           {buildingData.name}
         </span>
-        
-        <span className={cn(
-          'text-xs',
-          isSelected ? 'text-white/80' : 'text-text-muted'
-        )}>
+
+        <span className={cn('text-xs', isSelected ? 'text-white/80' : 'text-text-muted')}>
           {costText}
         </span>
       </div>
@@ -77,7 +67,7 @@ interface BuildingPanelProps {
 }
 
 export const BuildingPanel = React.memo<BuildingPanelProps>(({ className }) => {
-  const selectedBuildingType = useGameStore((state) => state.selectedBuildingType);
+  const selectedBuildingType = useGameStore(state => state.selectedBuildingType);
   const { selectBuildingType, canAfford } = useGameActions();
 
   const buildingTypes = Object.keys(BUILDINGS) as BuildingType[];
@@ -86,12 +76,14 @@ export const BuildingPanel = React.memo<BuildingPanelProps>(({ className }) => {
     <Card className={className}>
       <div className="p-4">
         <h3 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
-          <span role="img" aria-label="Buildings">🏗️</span>
+          <span role="img" aria-label="Buildings">
+            🏗️
+          </span>
           Buildings
         </h3>
-        
+
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
-          {buildingTypes.map((type) => (
+          {buildingTypes.map(type => (
             <BuildingItem
               key={type}
               type={type}
@@ -101,7 +93,7 @@ export const BuildingPanel = React.memo<BuildingPanelProps>(({ className }) => {
             />
           ))}
         </div>
-        
+
         {selectedBuildingType && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}

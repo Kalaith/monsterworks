@@ -5,10 +5,10 @@
 
 // ===== RESOURCE TYPES =====
 
-export type ResourceType = 
+export type ResourceType =
   // Biological Resources
   | 'flesh'
-  | 'bone' 
+  | 'bone'
   | 'fungus'
   | 'ichor'
   // Elemental Resources
@@ -23,7 +23,8 @@ export type ResourceType =
   // Synthetic Resources
   | 'mutagen'
   | 'evolution_essence'
-  | 'loyalty';export interface ResourceData {
+  | 'loyalty';
+export interface ResourceData {
   emoji: string;
   name: string;
   color: string;
@@ -52,7 +53,7 @@ export interface InventoryState {
 
 // ===== CREATURE TYPES =====
 
-export type CreatureType = 
+export type CreatureType =
   // Tier 0: Primitive Workers
   | 'slime'
   | 'goblin'
@@ -70,22 +71,45 @@ export type CreatureType =
   | 'bat'
   | 'wraith'
   | 'ember_drake'
-  | 'crystal_slime';export type CreatureSpecialty = 
+  | 'crystal_slime';
+export type CreatureSpecialty =
   // Material handling
-  | 'liquid' | 'corruption' | 'scavenging' | 'general' | 'silk' | 'web'
-  | 'metal' | 'dissolving' | 'highway' | 'tunneling' | 'logistics'
-  | 'seeking' | 'automatic' | 'crushing' | 'heavy' | 'forge'
-  | 'tireless' | 'undead' | 'flying' | 'courier' | 'teleport'
-  | 'fragile' | 'fire' | 'smelting' | 'magical' | 'delicate'
-  | 'construction' | 'any';
+  | 'liquid'
+  | 'corruption'
+  | 'scavenging'
+  | 'general'
+  | 'silk'
+  | 'web'
+  | 'metal'
+  | 'dissolving'
+  | 'highway'
+  | 'tunneling'
+  | 'logistics'
+  | 'seeking'
+  | 'automatic'
+  | 'crushing'
+  | 'heavy'
+  | 'forge'
+  | 'tireless'
+  | 'undead'
+  | 'flying'
+  | 'courier'
+  | 'teleport'
+  | 'fragile'
+  | 'fire'
+  | 'smelting'
+  | 'magical'
+  | 'delicate'
+  | 'construction'
+  | 'any';
 
-export type CreatureStatus = 
-  | 'idle' 
-  | 'seeking_work' 
-  | 'traveling' 
-  | 'working' 
-  | 'carrying' 
-  | 'resting' 
+export type CreatureStatus =
+  | 'idle'
+  | 'seeking_work'
+  | 'traveling'
+  | 'working'
+  | 'carrying'
+  | 'resting'
   | 'delivering';
 
 export interface CreatureData {
@@ -119,7 +143,7 @@ export interface CreatureState {
 
 // ===== BUILDING TYPES =====
 
-export type BuildingType = 
+export type BuildingType =
   // Basic Facilities
   | 'slime_pit'
   | 'bone_kiln'
@@ -135,7 +159,8 @@ export type BuildingType =
   | 'bio_tunnel'
   | 'silk_highway'
   | 'bone_walkway'
-  | 'corpse_pile';export interface BuildingData {
+  | 'corpse_pile';
+export interface BuildingData {
   emoji: string;
   name: string;
   cost: ResourceCost;
@@ -168,15 +193,15 @@ export interface BuildingState {
 export interface GameState {
   // Resources - now organized by inventory type
   inventory: InventoryState;
-  
+
   // Game objects
   buildings: BuildingState[];
   creatures: CreatureState[];
-  
+
   // Game controls
   gameSpeed: number;
   isPaused: boolean;
-  
+
   // Selection state
   selectedBuildingType: BuildingType | null;
   selectedCreatureType: CreatureType | null;
@@ -184,11 +209,11 @@ export interface GameState {
     type: 'building' | 'creature';
     id: string;
   } | null;
-  
+
   // Game time
   gameTime: number;
   lastUpdate: number;
-  
+
   // Evolution system
   unlockedCreatures: Set<CreatureType>;
   unlockedBuildings: Set<BuildingType>;
@@ -285,19 +310,24 @@ export interface GameActions {
   addResource: (type: ResourceType, amount: number, inventory?: InventoryType) => void;
   spendResources: (cost: ResourceCost, fromInventory?: InventoryType) => boolean;
   canAfford: (cost: ResourceCost, fromInventory?: InventoryType) => boolean;
-  transferResource: (type: ResourceType, amount: number, from: InventoryType, to: InventoryType) => boolean;
+  transferResource: (
+    type: ResourceType,
+    amount: number,
+    from: InventoryType,
+    to: InventoryType
+  ) => boolean;
   getTotalResource: (type: ResourceType) => number; // Get total across all inventories
   getResourceInInventory: (type: ResourceType, inventory: InventoryType) => number;
-  
+
   // Building management
   placeBuilding: (type: BuildingType, position: Position) => boolean;
   removeBuilding: (id: string) => void;
-  
+
   // Creature management
   spawnCreature: (type: CreatureType, position: Position) => boolean;
   removeCreature: (id: string) => void;
   updateCreature: (id: string, updates: Partial<CreatureState>) => void;
-  
+
   // Evolution system
   canEvolveCreature: (creatureId: string, targetType: CreatureType) => boolean;
   evolveCreature: (creatureId: string, targetType: CreatureType) => boolean;
@@ -305,24 +335,28 @@ export interface GameActions {
   unlockBuilding: (type: BuildingType) => void;
   isCreatureUnlocked: (type: CreatureType) => boolean;
   isBuildingUnlocked: (type: BuildingType) => boolean;
-  
+
   // Selection management
   selectBuildingType: (type: BuildingType | null) => void;
   selectCreatureType: (type: CreatureType | null) => void;
   selectObject: (type: 'building' | 'creature', id: string) => void;
   clearSelection: () => void;
-  
+
   // Game controls
   setGameSpeed: (speed: number) => void;
   togglePause: () => void;
-  
+
   // UI controls
   showInfo: (type: 'building' | 'creature', id: string) => void;
   hideInfo: () => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
-  showToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error', duration?: number) => void;
+  showToast: (
+    message: string,
+    type?: 'info' | 'success' | 'warning' | 'error',
+    duration?: number
+  ) => void;
   hideToast: (id: string) => void;
-  
+
   // Game loop
   updateGame: (deltaTime: number) => void;
   resetGame: () => void;
@@ -348,29 +382,61 @@ export interface GameData {
 
 export const creatureTypes: CreatureType[] = [
   // Tier 0: Primitive Workers
-  'slime', 'goblin', 'spider', 'wild_creature',
+  'slime',
+  'goblin',
+  'spider',
+  'wild_creature',
   // Tier 1: First Specializations
-  'acid_slime', 'hobgoblin', 'weaver_spider', 'worker_ant', 'forager_ant',
+  'acid_slime',
+  'hobgoblin',
+  'weaver_spider',
+  'worker_ant',
+  'forager_ant',
   // Tier 2: Industrial Beasts
-  'troll', 'zombie', 'bat', 'wraith', 'ember_drake', 'crystal_slime'
+  'troll',
+  'zombie',
+  'bat',
+  'wraith',
+  'ember_drake',
+  'crystal_slime',
 ];
 
 export const buildingTypes: BuildingType[] = [
   // Basic Facilities
-  'slime_pit', 'bone_kiln', 'spider_silk_loom', 'goblin_hovel', 'scavenging_post',
+  'slime_pit',
+  'bone_kiln',
+  'spider_silk_loom',
+  'goblin_hovel',
+  'scavenging_post',
   // Advanced Facilities
-  'troll_forge', 'necromantic_circle', 'crystal_garden', 'demon_circle',
+  'troll_forge',
+  'necromantic_circle',
+  'crystal_garden',
+  'demon_circle',
   // Infrastructure
-  'bio_tunnel', 'silk_highway', 'bone_walkway', 'corpse_pile'
+  'bio_tunnel',
+  'silk_highway',
+  'bone_walkway',
+  'corpse_pile',
 ];
 
 export const resourceTypes: ResourceType[] = [
   // Biological Resources
-  'flesh', 'bone', 'fungus', 'ichor',
-  // Elemental Resources  
-  'fire_cores', 'dark_crystals', 'corrupted_water', 'shadow_essence',
+  'flesh',
+  'bone',
+  'fungus',
+  'ichor',
+  // Elemental Resources
+  'fire_cores',
+  'dark_crystals',
+  'corrupted_water',
+  'shadow_essence',
   // Looted Resources
-  'rusted_weapons', 'torn_cloth', 'stolen_knowledge',
+  'rusted_weapons',
+  'torn_cloth',
+  'stolen_knowledge',
   // Synthetic Resources
-  'mutagen', 'evolution_essence', 'loyalty'
+  'mutagen',
+  'evolution_essence',
+  'loyalty',
 ];

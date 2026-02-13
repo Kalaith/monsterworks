@@ -14,7 +14,8 @@ export const useGameLoop = () => {
       if (!currentState.isPaused) {
         // Only update store every 200ms (5 times per second) instead of every frame
         const timeSinceLastUpdate = currentTime - lastUpdateRef.current;
-        if (timeSinceLastUpdate >= 200) { // 200ms = 5 FPS for UI updates
+        if (timeSinceLastUpdate >= 200) {
+          // 200ms = 5 FPS for UI updates
           // Pass the actual time elapsed since last update, not the frame deltaTime
           const updateDeltaTime = timeSinceLastUpdate / 1000; // Convert to seconds
           currentState.actions.updateGame(updateDeltaTime * currentState.gameSpeed);
@@ -37,7 +38,7 @@ export const useGameLoop = () => {
   return {
     start: () => {
       if (!animationFrameRef.current) {
-        animationFrameRef.current = requestAnimationFrame((time) => {
+        animationFrameRef.current = requestAnimationFrame(time => {
           lastTimeRef.current = time;
           // Restart the loop
         });
@@ -48,6 +49,6 @@ export const useGameLoop = () => {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-    }
+    },
   };
 };
