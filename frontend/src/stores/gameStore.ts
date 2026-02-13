@@ -19,8 +19,8 @@ import type {
   InventoryType
 } from '../types/game';
 import { 
-  INITIAL_INVENTORY, 
-  GAME_CONFIG,
+  initialInventory, 
+  gameConfig,
   getBuildingData,
   getCreatureData,
   getResourceInventoryCategory
@@ -36,7 +36,7 @@ import { calculateDistance } from '../utils/gameUtils';
 // ===== INITIAL STATE =====
 
 const initialGameState: GameState = {
-  inventory: { ...INITIAL_INVENTORY },
+  inventory: { ...initialInventory },
   buildings: [
     {
       id: 'initial-bone-kiln',
@@ -614,12 +614,12 @@ export const useGameStore = create<GameStore>()(
               if (creature.status === 'resting') {
                 newCreature.energy = Math.min(
                   creature.maxEnergy,
-                  creature.energy + (GAME_CONFIG.timing.restRate * scaledDeltaTime) / 1000
+                  creature.energy + (gameConfig.timing.restRate * scaledDeltaTime) / 1000
                 );
               } else {
                 newCreature.energy = Math.max(
                   0,
-                  creature.energy - (GAME_CONFIG.timing.energyDecayRate * scaledDeltaTime) / 1000
+                  creature.energy - (gameConfig.timing.energyDecayRate * scaledDeltaTime) / 1000
                 );
               }
 

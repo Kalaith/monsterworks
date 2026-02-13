@@ -3,7 +3,7 @@
  */
 
 import type { CreatureState, CreatureType, Position, ResourceCost } from '../types/game';
-import { getCreatureData, snapToGrid, isValidPosition, GAME_CONFIG } from '../data/gameData';
+import { getCreatureData, snapToGrid, isValidPosition, gameConfig } from '../data/gameData';
 
 export class CreatureService {
   /**
@@ -19,8 +19,8 @@ export class CreatureService {
     const creatureData = getCreatureData(type);
     
     // Check creature limit
-    if (existingCreatures.length >= GAME_CONFIG.limits.maxCreatures) {
-      return { canSpawn: false, reason: `Maximum creature limit reached (${GAME_CONFIG.limits.maxCreatures})!` };
+    if (existingCreatures.length >= gameConfig.limits.maxCreatures) {
+      return { canSpawn: false, reason: `Maximum creature limit reached (${gameConfig.limits.maxCreatures})!` };
     }
 
     // Check if creature type is unlocked

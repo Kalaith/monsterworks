@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
-import { RESOURCES, getStreamlinedResources, INVENTORY_CATEGORIES } from '../../data/gameData';
+import { RESOURCES, getStreamlinedResources, inventoryCategories } from '../../data/gameData';
 import type { ResourceType, InventoryType } from '../../types/game';
 import { cn } from '../../utils/cn';
 import { Button } from '../ui/Button';
@@ -89,7 +89,7 @@ function InventoryDetailModal({ isOpen, onClose }: InventoryDetailModalProps) {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Object.entries(INVENTORY_CATEGORIES).map(([categoryKey, category]) => (
+          {Object.entries(inventoryCategories).map(([categoryKey, category]) => (
             <div key={categoryKey} className="space-y-3">
               <div className="border-b border-card-border pb-2">
                 <h3 className="font-semibold text-text text-lg">{category.name}</h3>

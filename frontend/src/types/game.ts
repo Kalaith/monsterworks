@@ -346,7 +346,7 @@ export interface GameData {
 
 // ===== CONSTANTS =====
 
-export const CREATURE_TYPES: CreatureType[] = [
+export const creatureTypes: CreatureType[] = [
   // Tier 0: Primitive Workers
   'slime', 'goblin', 'spider', 'wild_creature',
   // Tier 1: First Specializations
@@ -355,7 +355,7 @@ export const CREATURE_TYPES: CreatureType[] = [
   'troll', 'zombie', 'bat', 'wraith', 'ember_drake', 'crystal_slime'
 ];
 
-export const BUILDING_TYPES: BuildingType[] = [
+export const buildingTypes: BuildingType[] = [
   // Basic Facilities
   'slime_pit', 'bone_kiln', 'spider_silk_loom', 'goblin_hovel', 'scavenging_post',
   // Advanced Facilities
@@ -364,7 +364,7 @@ export const BUILDING_TYPES: BuildingType[] = [
   'bio_tunnel', 'silk_highway', 'bone_walkway', 'corpse_pile'
 ];
 
-export const RESOURCE_TYPES: ResourceType[] = [
+export const resourceTypes: ResourceType[] = [
   // Biological Resources
   'flesh', 'bone', 'fungus', 'ichor',
   // Elemental Resources  

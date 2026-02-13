@@ -12,7 +12,7 @@ import type {
   ResourceType,
   GameActions
 } from '../types/game';
-import { getBuildingData, getCreatureData, GAME_DATA, GAME_CONFIG } from '../data/gameData';
+import { getBuildingData, getCreatureData, gameData, gameConfig } from '../data/gameData';
 
 // ===== UTILITY FUNCTIONS =====
 
@@ -46,7 +46,7 @@ export function gridToPixel(gridX: number, gridY: number, gridSize: number = 50)
 }
 
 export function isValidPosition(x: number, y: number, canvasWidth = 1000, canvasHeight = 700): boolean {
-  const gridSize = GAME_CONFIG.grid?.size || 50;
+  const gridSize = gameConfig.grid?.size || 50;
   return x >= gridSize/2 && x <= canvasWidth - gridSize/2 && 
          y >= gridSize/2 && y <= canvasHeight - gridSize/2;
 }
@@ -103,7 +103,7 @@ export class Building {
     // Initialize storage for storage buildings
     const buildingData = getBuildingData(this.type);
     if (buildingData.storage) {
-      Object.keys(GAME_DATA.resources).forEach(resource => {
+      Object.keys(gameData.resources).forEach(resource => {
         if (this.storage[resource] === undefined) {
           this.storage[resource] = 0;
         }
@@ -173,7 +173,7 @@ export class Building {
       .map(([resource, amount]) => ({
         resource: resource as ResourceType,
         amount,
-        emoji: GAME_DATA.resources[resource as ResourceType]?.emoji || '?'
+        emoji: gameData.resources[resource as ResourceType]?.emoji || '?'
       }));
   }
 
@@ -249,7 +249,7 @@ export class Creature {
     if (this.status === 'resting') {
       this.energy = Math.min(
         this.maxEnergy,
-        this.energy + (GAME_CONFIG.timing.restRate * deltaTime) / 1000
+        this.energy + (gameConfig.timing.restRate * deltaTime) / 1000
       );
       this.restTime += deltaTime;
       
@@ -262,7 +262,7 @@ export class Creature {
     } else {
       this.energy = Math.max(
         0,
-        this.energy - (GAME_CONFIG.timing.energyDecayRate * deltaTime) / 1000
+        this.energy - (gameConfig.timing.energyDecayRate * deltaTime) / 1000
       );
     }
 

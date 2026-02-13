@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import type { Position, BuildingState, CreatureState } from '../../types/game';
-import { getBuildingData, getCreatureData, GAME_DATA } from '../../data/gameData';
+import { getBuildingData, getCreatureData, gameData } from '../../data/gameData';
 
 interface GameCanvasProps {
   width?: number;
@@ -144,7 +144,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
 
     // Show production indicator and current production level
     if (buildingData.produces) {
-      const resourceData = GAME_DATA.resources[buildingData.produces];
+      const resourceData = gameData.resources[buildingData.produces];
       ctx.font = '12px Arial';
       ctx.fillText(resourceData.emoji, building.x, building.y - 15);
       
@@ -173,7 +173,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = React.memo(({
       let yOffset = 40;
       Object.entries(building.storage).forEach(([resource, amount]) => {
         if (typeof amount === 'number' && amount > 0) {
-          const resourceData = GAME_DATA.resources[resource as keyof typeof GAME_DATA.resources];
+          const resourceData = gameData.resources[resource as keyof typeof gameData.resources];
           if (resourceData) {
             ctx.fillText(`${resourceData.emoji}${Math.floor(amount)}`, building.x, building.y + yOffset);
             yOffset += 12;

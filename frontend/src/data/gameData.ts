@@ -1,6 +1,6 @@
 /**
  * Game data configuration with full TypeScript typing
- * Ported from the original GAME_DATA object with enhanced type safety
+ * Ported from the original gameData object with enhanced type safety
  */
 
 import type { 
@@ -327,7 +327,7 @@ export const RESOURCES: Record<ResourceType, ResourceData> = {
 
 // ===== GAME CONFIGURATION =====
 
-export const GAME_CONFIG: GameConfig = {
+export const gameConfig: GameConfig = {
   canvas: {
     width: 1000,
     height: 700,
@@ -359,7 +359,7 @@ export const GAME_CONFIG: GameConfig = {
 
 // ===== INVENTORY CATEGORIES =====
 
-export const INVENTORY_CATEGORIES: Record<string, InventoryCategory> = {
+export const inventoryCategories: Record<string, InventoryCategory> = {
   base: {
     type: 'base',
     name: 'Base Resources',
@@ -402,7 +402,7 @@ export const INVENTORY_CATEGORIES: Record<string, InventoryCategory> = {
 
 // ===== INITIAL INVENTORY STATE =====
 
-export const INITIAL_INVENTORY: InventoryState = {
+export const initialInventory: InventoryState = {
   base: {
     // Biological Resources - Starting supplies
     flesh: 25,
@@ -463,7 +463,7 @@ export const INITIAL_INVENTORY: InventoryState = {
 
 // ===== COMBINED GAME DATA =====
 
-export const GAME_DATA: GameData = {
+export const gameData: GameData = {
   creatures: CREATURES,
   buildings: BUILDINGS,
   resources: RESOURCES
@@ -475,7 +475,7 @@ export const GAME_DATA: GameData = {
  * Get which inventory category a resource belongs to primarily
  */
 export function getResourceInventoryCategory(resourceType: ResourceType): string {
-  for (const [categoryName, category] of Object.entries(INVENTORY_CATEGORIES)) {
+  for (const [categoryName, category] of Object.entries(inventoryCategories)) {
     if (category.resources.includes(resourceType)) {
       return categoryName;
     }
@@ -487,7 +487,7 @@ export function getResourceInventoryCategory(resourceType: ResourceType): string
  * Get all resources in a specific inventory category
  */
 export function getResourcesInCategory(categoryName: string): ResourceType[] {
-  return INVENTORY_CATEGORIES[categoryName]?.resources || [];
+  return inventoryCategories[categoryName]?.resources || [];
 }
 
 /**
@@ -579,15 +579,15 @@ export function getCarriersForResource(resourceType: ResourceType): CreatureType
  * Validate that a position is within canvas bounds
  */
 export function isValidPosition(x: number, y: number): boolean {
-  return x >= 0 && x <= GAME_CONFIG.canvas.width && 
-         y >= 0 && y <= GAME_CONFIG.canvas.height;
+  return x >= 0 && x <= gameConfig.canvas.width && 
+         y >= 0 && y <= gameConfig.canvas.height;
 }
 
 /**
  * Snap position to grid center (places items in center of grid cells)
  */
 export function snapToGrid(x: number, y: number, gridSize?: number): { x: number; y: number } {
-  const size = gridSize || GAME_CONFIG.grid.size;
+  const size = gridSize || gameConfig.grid.size;
   return {
     x: Math.round(x / size) * size + size / 2,
     y: Math.round(y / size) * size + size / 2
@@ -598,7 +598,7 @@ export function snapToGrid(x: number, y: number, gridSize?: number): { x: number
  * Convert pixel position to grid coordinates
  */
 export function pixelToGrid(x: number, y: number, gridSize?: number): { gridX: number; gridY: number } {
-  const size = gridSize || GAME_CONFIG.grid.size;
+  const size = gridSize || gameConfig.grid.size;
   return {
     gridX: Math.round(x / size),
     gridY: Math.round(y / size)
@@ -609,7 +609,7 @@ export function pixelToGrid(x: number, y: number, gridSize?: number): { gridX: n
  * Convert grid coordinates to pixel position
  */
 export function gridToPixel(gridX: number, gridY: number, gridSize?: number): { x: number; y: number } {
-  const size = gridSize || GAME_CONFIG.grid.size;
+  const size = gridSize || gameConfig.grid.size;
   return {
     x: gridX * size,
     y: gridY * size
@@ -625,9 +625,9 @@ export function isValidGridPosition(
   canvasWidth?: number, 
   canvasHeight?: number
 ): boolean {
-  const width = canvasWidth || GAME_CONFIG.canvas.width;
-  const height = canvasHeight || GAME_CONFIG.canvas.height;
-  const gridSize = GAME_CONFIG.grid.size;
+  const width = canvasWidth || gameConfig.canvas.width;
+  const height = canvasHeight || gameConfig.canvas.height;
+  const gridSize = gameConfig.grid.size;
   
   const maxGridX = Math.floor(width / gridSize);
   const maxGridY = Math.floor(height / gridSize);
@@ -637,4 +637,4 @@ export function isValidGridPosition(
 
 // ===== EXPORT DEFAULT =====
 
-export default GAME_DATA;
+export default gameData;
