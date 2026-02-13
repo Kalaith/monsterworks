@@ -1,3 +1,4 @@
+
 /**
  * Card component following the design system
  */
@@ -6,7 +7,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../../utils/cn';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface CardProps
+  extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    'onAnimationStart' | 'onAnimationEnd'
+  > {
   variant?: 'default' | 'elevated' | 'interactive';
   children: React.ReactNode;
 }
@@ -29,7 +34,7 @@ export function Card({ variant = 'default', className, children, ...props }: Car
         className={combinedClassName}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        {...props}
+        {...(props as any)}
       >
         {children}
       </motion.div>

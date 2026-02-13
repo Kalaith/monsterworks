@@ -1,3 +1,4 @@
+
 /**
  * Zustand game state store for Emoji Factory Builder
  * Centralized state management with clean separation from business logic
@@ -1040,13 +1041,6 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'emoji-factory-game-store',
-      partialize: (state: GameStore) => ({
-        // Only persist certain parts of the state
-        inventory: state.inventory,
-        buildings: state.buildings,
-        creatures: state.creatures,
-        theme: state.theme,
-      }),
     }
   )
 );
