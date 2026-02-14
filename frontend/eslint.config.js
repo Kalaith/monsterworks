@@ -71,5 +71,12 @@ export default tseslint.config(
       globals: globals.node,
     },
     rules: {},
+  },
+  // Test utilities and test specs are not hot-reloaded React modules.
+  {
+    files: ['src/test/**/*.{ts,tsx}', '**/*.test.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
   }
 );
