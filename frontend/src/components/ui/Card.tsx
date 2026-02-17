@@ -3,13 +3,10 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import { cn } from '../../utils/cn';
 
-interface CardProps extends Omit<
-  React.HTMLAttributes<HTMLDivElement>,
-  'onAnimationStart' | 'onAnimationEnd'
-> {
+interface CardProps extends Omit<HTMLMotionProps<'div'>, 'onAnimationStart' | 'onAnimationEnd'> {
   variant?: 'default' | 'elevated' | 'interactive';
   children: React.ReactNode;
 }
@@ -26,23 +23,15 @@ export function Card({ variant = 'default', className, children, ...props }: Car
 
   const combinedClassName = cn(baseClasses, variantClasses[variant], className);
 
-  if (variant === 'interactive') {
-    return (
-      <motion.div
-        className={combinedClassName}
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        {...props}
-      >
-        {children}
-      </motion.div>
-    );
-  }
-
   return (
-    <div className={combinedClassName} {...props}>
+    <motion.div
+      className={combinedClassName}
+      whileHover={variant === 'interactive' ? { scale: 1.01 } : undefined}
+      whileTap={variant === 'interactive' ? { scale: 0.99 } : undefined}
+      {...props}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
