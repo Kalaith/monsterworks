@@ -32,7 +32,7 @@ export function Card({ variant = 'default', className, children, ...props }: Car
         className={combinedClassName}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        {...(props as any)}
+        {...props}
       >
         {children}
       </motion.div>
