@@ -1,18 +1,11 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
+import { createWebHatcheryViteConfig } from '../../tools/shared/frontend/viteConfig';
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  base: '/monsterworks/', // Set base path for subpath deployment
-  resolve: {
-    alias: {
-      '@': '/src',
+export default createWebHatcheryViteConfig({
+  slug: 'monsterworks',
+  extraConfig: {
+    build: {
+      outDir: 'dist',
+      emptyOutDir: true,
     },
-  },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
   },
 });

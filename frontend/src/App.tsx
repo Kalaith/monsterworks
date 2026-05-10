@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GameHeader } from './components/game/GameHeader';
 import { BuildingPanel } from './components/game/BuildingPanel';
 import { CreaturePanel } from './components/game/CreaturePanel';
@@ -12,7 +12,13 @@ import './styles/globals.css';
 
 function App() {
   const [evolutionTarget, setEvolutionTarget] = useState<CreatureState | undefined>();
-  const { creatures, toasts, actions } = useGameStore();
+  const { creatures, toasts, actions, loadBackendState } = useGameStore();
+
+  useEffect(() => {
+    void loadBackendState().catch(error => {
+      console.error('Failed to load Monsterworks backend state:', error);
+    });
+  }, [loadBackendState]);
 
   const handleCloseEvolution = () => {
     setEvolutionTarget(undefined);

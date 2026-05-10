@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { webhatcheryGameApi, type WebHatcheryGameState } from '../api/webhatcheryGameApi';
 import type {
   GameState,
   GameActions,
@@ -32,6 +33,7 @@ import { CreatureService } from '../services/CreatureService';
 
 // Import utilities
 import { calculateDistance } from '../utils/gameUtils';
+import { useWebHatcherySessionStore } from './webhatcherySessionStore';
 
 // ===== INITIAL STATE =====
 
@@ -125,8 +127,67 @@ const initialUIState: UIState = {
 // ===== COMBINED STATE INTERFACE =====
 
 interface GameStore extends GameState, UIState {
+  loadBackendState: () => Promise<void>;
   actions: GameActions;
 }
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const loadOrCreateBackendGame = async (): Promise<WebHatcheryGameState> => {
+  const sessionStore = useWebHatcherySessionStore.getState();
+  try {
+    return await sessionStore.loadGame();
+  } catch {
+    return sessionStore.continueAsGuest();
+  }
+};
+
+const syncSessionState = (gameState: WebHatcheryGameState): void => {
+  useWebHatcherySessionStore.setState({
+    gameState,
+    user: gameState.user,
+    isLoading: false,
+    error: null,
+  });
+};
+
+const toBackendSnapshot = (state: GameStore): Record<string, unknown> => ({
+  inventory: state.inventory,
+  buildings: state.buildings,
+  creatures: state.creatures,
+  gameSpeed: state.gameSpeed,
+  isPaused: state.isPaused,
+  selectedBuildingType: state.selectedBuildingType,
+  selectedCreatureType: state.selectedCreatureType,
+  selectedObject: state.selectedObject,
+  gameTime: state.gameTime,
+  lastUpdate: state.lastUpdate,
+  unlockedCreatures: [...state.unlockedCreatures],
+  unlockedBuildings: [...state.unlockedBuildings],
+  evolutionProgress: state.evolutionProgress,
+  showInfoPanel: state.showInfoPanel,
+  infoPanelContent: state.infoPanelContent,
+  theme: state.theme,
+  toasts: [],
+});
+
+let backendSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+const syncBackendSnapshot = (intent: string, snapshot: Record<string, unknown>): void => {
+  if (backendSyncTimer) {
+    clearTimeout(backendSyncTimer);
+  }
+
+  backendSyncTimer = setTimeout(() => {
+    void webhatcheryGameApi
+      .applyIntent(intent, { state: snapshot })
+      .then(syncSessionState)
+      .catch(error => {
+        console.error('Failed to sync Monsterworks backend state:', error);
+      });
+  }, 1000);
+};
 
 // ===== ZUSTAND STORE =====
 
@@ -136,6 +197,34 @@ export const useGameStore = create<GameStore>()(
       // ===== GAME STATE =====
       ...initialGameState,
       ...initialUIState,
+
+      loadBackendState: async () => {
+        const gameState = await loadOrCreateBackendGame();
+        syncSessionState(gameState);
+        const backendState = gameState.save.state;
+        if (!isRecord(backendState) || !isRecord(backendState.gameState)) {
+          return;
+        }
+
+        const savedState = backendState.gameState;
+        const unlockedCreatures = Array.isArray(savedState.unlockedCreatures)
+          ? new Set(savedState.unlockedCreatures as CreatureType[])
+          : new Set(initialGameState.unlockedCreatures);
+        const unlockedBuildings = Array.isArray(savedState.unlockedBuildings)
+          ? new Set(savedState.unlockedBuildings as BuildingType[])
+          : new Set(initialGameState.unlockedBuildings);
+
+        set(
+          {
+            ...(savedState as Partial<GameStore>),
+            unlockedCreatures,
+            unlockedBuildings,
+            toasts: [],
+          },
+          false,
+          'loadBackendState'
+        );
+      },
 
       // ===== ACTIONS =====
       actions: {
@@ -1043,6 +1132,31 @@ export const useGameStore = create<GameStore>()(
     }
   )
 );
+
+useGameStore.subscribe((state, previousState) => {
+  if (
+    state.inventory === previousState.inventory &&
+    state.buildings === previousState.buildings &&
+    state.creatures === previousState.creatures &&
+    state.gameSpeed === previousState.gameSpeed &&
+    state.isPaused === previousState.isPaused &&
+    state.selectedBuildingType === previousState.selectedBuildingType &&
+    state.selectedCreatureType === previousState.selectedCreatureType &&
+    state.selectedObject === previousState.selectedObject &&
+    state.gameTime === previousState.gameTime &&
+    state.lastUpdate === previousState.lastUpdate &&
+    state.unlockedCreatures === previousState.unlockedCreatures &&
+    state.unlockedBuildings === previousState.unlockedBuildings &&
+    state.evolutionProgress === previousState.evolutionProgress &&
+    state.showInfoPanel === previousState.showInfoPanel &&
+    state.infoPanelContent === previousState.infoPanelContent &&
+    state.theme === previousState.theme
+  ) {
+    return;
+  }
+
+  syncBackendSnapshot('state_updated', toBackendSnapshot(state));
+});
 
 // ===== CONVENIENCE HOOKS =====
 
